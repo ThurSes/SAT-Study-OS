@@ -20,15 +20,16 @@
   dos testes transacionais A/B/anônimo, retry, gabaritos privados e prazo. API anônima negou
   leitura de estudos e execução da correção (401/42501), verificado diretamente. Não há chave
   administrativa na aplicação. Inspeção da aba compartilhada foi bloqueada pela política do
-  navegador. Usuário confirmou entrada na aplicação com a conta real; salvamento/reload e
-  retomada pela UI aguardam a verificação manual solicitada.
+  navegador. Usuário confirmou login real e a jornada manual: atividade criada, nota/conclusão
+  de aula, causa/reflexão no diário e seleção/marcação/pausa do simulador permaneceram após reload.
 - Verificações: typecheck, lint, build passaram; 35 casos Vitest passaram. Três jornadas públicas
   Playwright/Edge passaram para aulas, filtros/notas, login/recuperação e layouts
   320/360/768/1440 nos dois temas. Capturas em artifacts/screenshots (fora do Git).
   As 16 jornadas demonstrativas passaram; proteção de sete rotas pessoais e callback seguro
   passou separadamente com projeto configurado (17 casos únicos). npm ci reproduziu o lockfile.
   Login real confirmado pelo usuário. Smoke de produção passou: aulas/login disponíveis e sete
-  áreas pessoais protegidas, sem fixtures. Salvamento pela UI ainda não foi confirmado.
+  áreas pessoais protegidas, sem fixtures. Persistência e retomada pela UI confirmadas manualmente
+  pelo usuário; não foram automatizadas usando a conta pessoal por causa do bloqueio da aba.
 - Sem Supabase configurado, fixtures pessoais só em desenvolvimento e explicitamente locais;
   produção orienta configurar. Catálogo didático é público e autoral em ambos os ambientes.
 - Dependências: SDKs oficiais @supabase/ssr 0.12.7 e supabase-js 2.118.0; mínimo Node 22,
@@ -36,6 +37,6 @@
   transitivo (braces via eslint-config-next), conforme README. Sem Docker/CLI/banco local.
 - Delegação: frontend entregou biblioteca e sat-engine a prática individual em arquivos exclusivos.
   Principal integrou e revisou auth/SQL/dados; revisão QA independente não chegou a executar.
-- Próximo passo obrigatório: usuário conferir gravação/reload e retomada pela aplicação.
-  URLs de confirmação/recuperação devem estar cadastradas no Dashboard Auth.
-  Leituras atuais limitadas a 500 registros por área/2000 revisões, sem paginação.
+- Entrega solicitada concluída: Supabase/Auth, salvamento, biblioteca e três causas de erro.
+  Recuperação de senha está implementada, mas seu envio/retorno por e-mail não teve jornada real
+  nesta validação. Leituras atuais limitadas a 500 registros por área/2000 revisões, sem paginação.
