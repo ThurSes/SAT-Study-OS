@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { createSession, getRemainingMs, transitionSession, type SessionEvent, type SessionState } from "@/lib/sat/session";
-import type { Answer, Question, SimulatorPlan, Skill } from "@/types/domain";
+import type { Answer, Question, SaveResult, SimulatorPlan, Skill, StoredSimulatorSession } from "@/types/domain";
 import styles from "./simulator.module.css";
 
 function SessionClock({ session, onExpire }: { session: SessionState; onExpire: () => void }) {
@@ -71,20 +71,64 @@ const sessionHint = {
   locked: "As alternativas ficam disponíveis enquanto o cronômetro está em andamento.",
 } as const;
 
-export function SimulatorSession({ plan, questions, skills }: {
+function restoreStored(value: StoredSimulatorSession): SessionState {
+  return { status: value.status, answers: value.answers, remainingMs: value.remainingMs, startedAtMs: value.status === "running" ? performance.now() : null };
+}
+
+export function SimulatorSession({ plan, questions, skills, initialStored, onSaveEvent }: {
   plan: SimulatorPlan; questions: readonly Question[]; skills: readonly Skill[];
+  initialStored?: StoredSimulatorSession;
+  onSaveEvent?: (requestId: string, revision: number, event: SessionEvent) => Promise<SaveResult<StoredSimulatorSession>>;
 }) {
-  const [session, setSession] = useState(() => createSession(plan));
+  const [session, setSession] = useState(() => initialStored ? restoreStored(initialStored) : createSession(plan));
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [saveFeedback, setSaveFeedback] = useState("");
+  const revision = useRef(initialStored?.revision ?? 0);
+  const savingLock = useRef(false);
+  const retry = useRef<{ requestId: string; revision: number; event: SessionEvent } | null>(null);
+  const expirationRequested = useRef(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const questionHeading = useRef<HTMLHeadingElement>(null);
   const timerControl = useRef<HTMLButtonElement>(null);
   const restarting = useRef(false);
   const orderedQuestions = plan.questions.map((ref) => questions.find((question) => question.id === ref.id && question.version === ref.version));
   const dispatch = useCallback((event: SessionEvent) => {
+    if (onSaveEvent) {
+      if (savingLock.current) return;
+      const request = retry.current || { requestId: crypto.randomUUID(), revision: revision.current, event };
+      const focused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      retry.current = request;
+      savingLock.current = true; setSaving(true); setSaveError(""); setSaveFeedback("");
+      void onSaveEvent(request.requestId, request.revision, request.event).then(result => {
+        if (!result.ok) { setSaveError(result.error); return; }
+        revision.current = result.value.revision;
+        retry.current = null;
+        if (request.event.type === "restart" || request.event.type === "start") expirationRequested.current = false;
+        setSession(restoreStored(result.value));
+        setSaveFeedback(result.value.status === "expired" ? "Prazo encerrado. Últimas respostas confirmadas preservadas na sua conta." : "Alteração salva na sua conta.");
+      }).catch(() => setSaveError("Não foi possível confirmar a gravação. Tente novamente antes de sair.")).finally(() => {
+        savingLock.current = false; setSaving(false);
+        requestAnimationFrame(() => {
+          if (document.activeElement !== document.body) return;
+          if (focused?.isConnected) focused.focus();
+          else if (request.event.type === "restart") timerControl.current?.focus();
+        });
+      });
+      return;
+    }
     const now = performance.now();
     setSession((previous) => transitionSession(previous, event, plan, questions, now));
-  }, [plan, questions]);
-  const expire = useCallback(() => dispatch({ type: "tick" }), [dispatch]);
+  }, [plan, questions, onSaveEvent]);
+  const expire = useCallback(() => {
+    if (onSaveEvent && expirationRequested.current) return;
+    if (onSaveEvent) {
+      if (savingLock.current) return;
+      expirationRequested.current = true;
+      setSession(previous => transitionSession(previous, { type: "tick" }, plan, questions, performance.now()));
+    }
+    dispatch({ type: "tick" });
+  }, [dispatch, onSaveEvent, plan, questions]);
   const question = orderedQuestions[currentIndex];
 
   if (!question || orderedQuestions.some((item) => !item)) {
@@ -95,7 +139,7 @@ export function SimulatorSession({ plan, questions, skills }: {
   const answered = Object.values(session.answers).filter((item) => item.optionId !== null).length;
   const marked = Object.values(session.answers).filter((item) => item.markedForReview).length;
   const skill = skills.find((item) => item.id === question.skillId);
-  const editable = session.status === "running";
+  const editable = session.status === "running" && !saving && !saveError;
   const control = session.status === "running"
     ? { label: "Pausar", event: "pause" as const, Icon: Pause }
     : session.status === "paused"
@@ -119,18 +163,18 @@ export function SimulatorSession({ plan, questions, skills }: {
 
     <main id="main-content" className={styles.main}>
       <div className={styles.titleRow}>
-        <div><p className={styles.sectionEyebrow}>SESSÃO CURTA EXPERIMENTAL · DADOS DE DESENVOLVIMENTO</p><h1>Um texto. Um raciocínio de cada vez.</h1><p className={styles.intro}>{plan.questions.length} questões originais · {plan.durationSeconds / 60} minutos · Sem adaptação ou correção real</p></div>
+        <div><p className={styles.sectionEyebrow}>SESSÃO CURTA EXPERIMENTAL{!onSaveEvent && " · DADOS DE DESENVOLVIMENTO"}</p><h1>Um texto. Um raciocínio de cada vez.</h1><p className={styles.intro}>{plan.questions.length} questões originais · {plan.durationSeconds / 60} minutos · Sem adaptação ou correção real</p></div>
         <SessionClock key={session.status} session={session} onExpire={expire} />
       </div>
 
       <div className={styles.sessionBar}>
-        <p role="status" className={styles.status}><span className={`${styles.statusDot} ${editable ? styles.statusDotRunning : ""}`} />{sessionHint[session.status]}</p>
+        <p role="status" className={styles.status}><span className={`${styles.statusDot} ${editable ? styles.statusDotRunning : ""}`} />{onSaveEvent && session.status === "running" ? "Sessão vinculada à sua conta · O prazo continua ao recarregar." : sessionHint[session.status]}</p>
         <div className={styles.timerActions}>
-          <Button ref={timerControl} variant={editable ? "secondary" : "default"} disabled={session.status === "expired"} onClick={() => dispatch({ type: control.event })}>
+          <Button ref={timerControl} variant={editable ? "secondary" : "default"} disabled={session.status === "expired" || saving || Boolean(saveError)} onClick={() => dispatch({ type: control.event })}>
             <control.Icon size={16} aria-hidden="true" />{session.status === "expired" ? "Tempo encerrado" : control.label}
           </Button>
           <AlertDialog>
-            <AlertDialogTrigger asChild><Button variant="ghost" disabled={session.status === "idle"}><RotateCcw size={16} aria-hidden="true" />Reiniciar</Button></AlertDialogTrigger>
+            <AlertDialogTrigger asChild><Button variant="ghost" disabled={session.status === "idle" || saving || Boolean(saveError)}><RotateCcw size={16} aria-hidden="true" />Reiniciar</Button></AlertDialogTrigger>
             <AlertDialogContent onCloseAutoFocus={(event) => {
               if (restarting.current) {
                 event.preventDefault();
@@ -144,6 +188,11 @@ export function SimulatorSession({ plan, questions, skills }: {
           </AlertDialog>
         </div>
       </div>
+      {onSaveEvent && <div className={styles.developmentNote}>
+        {saving && <p role="status">Salvando ação… Aguarde a confirmação antes de sair.</p>}
+        {saveFeedback && <p role="status">{saveFeedback}</p>}
+        {saveError && <div><p role="alert">{saveError}</p><Button variant="outline" onClick={() => retry.current && dispatch(retry.current.event)} disabled={saving}>Tentar salvar novamente</Button> <a href="/simulador">Recarregar estado confirmado</a></div>}
+      </div>}
 
       <article className={styles.questionPanel}>
         <div className={styles.questionBar}>
@@ -155,7 +204,7 @@ export function SimulatorSession({ plan, questions, skills }: {
           onToggleReview={() => dispatch({ type: "toggle-review", questionId: question.id })} />
         <footer className={styles.questionFooter}>
           <Button variant="outline" disabled={currentIndex === 0} onClick={() => moveTo(currentIndex - 1)}><ArrowLeft size={16} aria-hidden="true" />Anterior</Button>
-          <span className={styles.footerHint}>{answer.optionId ? "Alternativa selecionada · apenas nesta aba" : "Uma escolha de cada vez."}</span>
+          <span className={styles.footerHint}>{answer.optionId ? onSaveEvent ? "Alternativa confirmada na sua conta" : "Alternativa selecionada · apenas nesta aba" : "Uma escolha de cada vez."}</span>
           <Button disabled={currentIndex === plan.questions.length - 1} onClick={() => moveTo(currentIndex + 1)}>Próxima<ArrowRight size={16} aria-hidden="true" /></Button>
         </footer>
       </article>
@@ -172,7 +221,7 @@ export function SimulatorSession({ plan, questions, skills }: {
         })}</div>
         <p className={styles.mapLegend}><span><i className={styles.legendAnswered} />Respondida</span><span><Bookmark size={13} aria-hidden="true" />Revisar</span><span><i className={styles.legendCurrent} />Atual</span></p>
       </nav>
-      <p className={styles.developmentNote}>Ambiente de desenvolvimento. Esta sessão não gera nota, histórico ou confirmação de salvamento. A pausa demonstrativa não representa as regras de uma aplicação oficial do SAT.</p>
+      <p className={styles.developmentNote}>{onSaveEvent ? "Respostas, marcações e cronômetro são preservados após confirmação. O servidor controla o prazo. Esta sessão ainda não gera correção, nota ou resultado no histórico; para correção com reflexão, use o banco de questões." : "Ambiente de desenvolvimento. Esta sessão não gera nota, histórico ou confirmação de salvamento."} A pausa demonstrativa não representa as regras de uma aplicação oficial do SAT.</p>
     </main>
   </div>;
 }

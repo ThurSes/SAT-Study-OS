@@ -19,3 +19,16 @@ das telas e componentes definitivos de dashboard/simulador. A aprovação visual
 | Sessão curta de cinco questões/cinco minutos, estado só em memória | interações úteis agora, sem banco alternativo ou falsa persistência; pausa explicitamente demonstrativa |
 | Fontes locais via pacotes OFL e next/font | manter identidade sem requisição de fontes externas durante build ou uso |
 | Tema inicial do sistema; alternância explícita persistida apenas no navegador | preferência visual sobrevive a reload sem banco ou dependência; respostas continuam somente em memória |
+
+## Integração autorizada após a expansão visual
+
+| Decisão | Motivo e consequência |
+|---|---|
+| Auth SSR por e-mail/senha e gravações por Server Actions, sem chave administrativa | sessão verificada no servidor; RLS e ownership também no acesso direto à API |
+| Correção individual e eventos de sessão/revisão em RPCs pequenas | transação e retries idempotentes; gabaritos privados, resposta original imutável e prazo controlado pelo banco |
+| Mesmo catálogo de questões original em desenvolvimento e produção | fixtures continuam apenas para dados pessoais sintéticos; componentes não precisam ser reconstruídos |
+| Biblioteca pública; notas/conclusão pessoais autenticadas | leitura útil sem conta, progresso persistido somente quando a conexão confirmar |
+
+Estas decisões substituem o limite de estado exclusivamente em memória quando Supabase está
+configurado. A sessão curta continua experimental, com pausa didática e sem adaptação/correção
+automática. Aplicação e verificação das migrations hospedadas são acompanhadas em STATE.

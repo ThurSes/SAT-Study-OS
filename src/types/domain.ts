@@ -32,7 +32,7 @@ export interface Question extends QuestionRef {
   readonly prompt: string;
   readonly language: "en";
   readonly options: readonly QuestionOption[];
-  readonly provenance: { readonly kind: "original-development"; readonly author: string };
+  readonly provenance: { readonly kind: "original-development" | "original"; readonly author: string };
 }
 
 export interface SimulatorPlan {
@@ -86,10 +86,51 @@ export interface ErrorRecord {
   readonly givenAnswer: string;
   readonly correctAnswer: string;
   readonly explanation: string;
-  readonly cause: "concept" | "reading" | "calculation" | "time" | "guess" | "unknown";
+  readonly cause: "concept" | "reading" | "attention" | "unknown";
   readonly reflection: string;
   readonly reviewDueDate: string;
   readonly reviews: readonly { readonly id: string; readonly reviewedAt: string }[];
+}
+
+export interface StudyLesson {
+  readonly id: string;
+  readonly skill: Skill;
+  readonly title: string;
+  readonly minutes: number;
+  readonly objectives: readonly string[];
+  readonly explanation: readonly string[];
+  readonly example: { readonly prompt: string; readonly steps: readonly string[]; readonly answer: string };
+  readonly pitfalls: readonly string[];
+}
+
+export interface LessonProgress {
+  readonly lessonId: string;
+  readonly completed: boolean;
+  readonly notes: string;
+}
+
+export type SaveResult<T> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly error: string };
+
+export type ErrorCause = ErrorRecord["cause"];
+export interface PracticeSubmission {
+  readonly requestId: string;
+  readonly question: QuestionRef;
+  readonly optionId: string;
+}
+export interface PracticeFeedback {
+  readonly attemptId: string;
+  readonly correct: boolean;
+  readonly correctAnswer: string;
+  readonly explanation: string;
+  readonly errorId: string | null;
+}
+
+export interface StoredSimulatorSession {
+  readonly revision: number;
+  readonly status: "idle" | "running" | "paused" | "expired";
+  readonly answers: Readonly<Record<string, Answer>>;
+  readonly remainingMs: number;
+  readonly deadline: string | null;
 }
 
 export interface DashboardData {

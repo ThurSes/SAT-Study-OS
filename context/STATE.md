@@ -1,34 +1,41 @@
 # Estado atual
 
-- Existe: aplicação única Next 16.4.2/React 19.3.1, TypeScript strict, Tailwind 4, componentes
-  shadcn/Radix, fontes locais e tokens do kit; contratos canônicos antes das telas, npm lockfile e Git.
-- Funciona em desenvolvimento: dashboard representativo e /simulador com cinco questões originais,
-  seleção, navegação/mapa, revisão e cronômetro monotônico de cinco minutos com pausa/retomada/reset.
-  Reinício confirma descarte, prazo bloqueia edição e teclado preserva foco. Sem gabaritos no cliente.
-  Temas claro/escuro nos mesmos componentes; botão no cabeçalho de ambas as telas, preferência
-  inicial do sistema e escolha explícita persistida somente para o tema. Sem novas dependências.
-- Interface expandida: /estudos (agenda, filtros, atividades/status/notas locais), /questoes
-  (busca/filtros e consulta sem gabarito), /erros (tentativas concluídas, reflexão e revisão local)
-  e /historico (origem/período, detalhes e registro externo com validação). Navegação e atalhos
-  do dashboard integrados; componentes e contratos reutilizados nos dois temas.
-- Dados: fixtures de servidor apenas em desenvolvimento; respostas em memória, perdidas ao
-  recarregar/sair. Sem auth, persistência, correção ou adaptação real. Produção mostra aviso explícito.
-- Aprovações: estrutura, conjunto inicial e visual das duas telas aprovados. Modo escuro solicitado
-  após essa avaliação e implementado. Expansão da interface autorizada posteriormente. Nenhum
-  serviço externo ou Docker configurado.
-- Verificado na expansão: typecheck, lint, build e 26 casos Vitest passaram. Seis jornadas
-  Playwright/Edge anteriores passaram como regressão e seis novas passaram para agenda, filtros,
-  avaliações, revisão, descarte ao recarregar e foco após remoção de itens filtrados. Responsividade
-  das quatro áreas conferida em 320/360/768/1440 nos dois temas, sem overflow ou erros de console.
-  Smoke HTTP das seis páginas em produção passou com aviso de configuração e sem fixtures.
-  Fundação já cobria cronômetro/expiração, teclado, reduced-motion, tema/reload/storage bloqueado
-  e contraste de nove pares no tema escuro. Capturas desktop/mobile em artifacts/screenshots
-  (fora do Git), com inspeção visual; lockfile reproduzido anteriormente via npm ci --offline.
-- Dependências: sem peers inválidos e audit de produção sem vulnerabilidades. Cinco alertas high
-  transitivos apenas de lint (braces via eslint-config-next), sem patch publicado; ver README.
-- Agentes: frontend e sat-engine entregaram arquivos independentes; qa revisou sem editar.
-  Na expansão, frontend entregou Estudos/Questões e sat-engine validou avaliações (oito casos).
-  QA apontou foco/feedback ao editar itens que saem do filtro; corrigido e coberto em E2E.
-  Nenhuma reserva de arquivo ativa.
-- Próxima ação: continuar as funcionalidades conforme escopo autorizado; Supabase/Auth/RLS e
-  persistência pertencem à etapa futura e não foram configurados nesta entrega.
+- Aplicação única Next 16.4.2/React 19.3.1, TypeScript strict, Tailwind 4, componentes
+  shadcn/Radix, fontes locais Source Serif 4 + Inter e temas claro/escuro. Git e npm lockfile.
+- Interface: dashboard, agenda, biblioteca /conteudos, questões, diário, histórico e simulador.
+  Biblioteca pública tem 32 aulas originais (11 RW/21 Math), oito domínios, explicações,
+  objetivos, exemplos resolvidos e armadilhas; não é material oficial nem mede domínio.
+- Implementado no código: login/cadastro/saída/recuperação Supabase SSR, Proxy de renovação,
+  sessão validada no servidor e callbacks para estudos, notas/progresso, avaliações e revisões.
+  Confirmação só após resposta positiva. Dashboard conectado parte de dados reais/vazios.
+- Questões: cinco itens RW originais compartilhados, prática individual via RPC atômica;
+  gabarito em schema privado. Erro concluído permite interpretação, conteúdo ou falta de atenção,
+  reflexão e diário, preservando resposta original. Retry usa UUID, sem escrita de nota pelo aluno.
+- Simulador: persistência de respostas/marcações/tempo implementada com RPC, revisão de
+  concorrência e prazo do banco; UI mantém relógio monotônico. Pausa didática, sem correção,
+  adaptação ou resultado no histórico. Revisões ainda sem reagendamento automático.
+- Conexão hospedada: projeto lrhpgpmszdajpbqvlevo informado pelo usuário; URL/chave publicável
+  em .env.local ignorado pelo Git. Auth/API respondem; confirmação de e-mail habilitada.
+  Migrations 202610180001–003 aplicadas via SQL Editor; usuário confirmou o resultado final
+  dos testes transacionais A/B/anônimo, retry, gabaritos privados e prazo. API anônima negou
+  leitura de estudos e execução da correção (401/42501), verificado diretamente. Não há chave
+  administrativa na aplicação. Inspeção da aba compartilhada foi bloqueada pela política do
+  navegador. Usuário confirmou entrada na aplicação com a conta real; salvamento/reload e
+  retomada pela UI aguardam a verificação manual solicitada.
+- Verificações: typecheck, lint, build passaram; 35 casos Vitest passaram. Três jornadas públicas
+  Playwright/Edge passaram para aulas, filtros/notas, login/recuperação e layouts
+  320/360/768/1440 nos dois temas. Capturas em artifacts/screenshots (fora do Git).
+  As 16 jornadas demonstrativas passaram; proteção de sete rotas pessoais e callback seguro
+  passou separadamente com projeto configurado (17 casos únicos). npm ci reproduziu o lockfile.
+  Login real confirmado pelo usuário. Smoke de produção passou: aulas/login disponíveis e sete
+  áreas pessoais protegidas, sem fixtures. Salvamento pela UI ainda não foi confirmado.
+- Sem Supabase configurado, fixtures pessoais só em desenvolvimento e explicitamente locais;
+  produção orienta configurar. Catálogo didático é público e autoral em ambos os ambientes.
+- Dependências: SDKs oficiais @supabase/ssr 0.12.7 e supabase-js 2.118.0; mínimo Node 22,
+  Node 24 recomendado. Audit de produção zero vulnerabilidades; cinco high apenas de lint
+  transitivo (braces via eslint-config-next), conforme README. Sem Docker/CLI/banco local.
+- Delegação: frontend entregou biblioteca e sat-engine a prática individual em arquivos exclusivos.
+  Principal integrou e revisou auth/SQL/dados; revisão QA independente não chegou a executar.
+- Próximo passo obrigatório: usuário conferir gravação/reload e retomada pela aplicação.
+  URLs de confirmação/recuperação devem estar cadastradas no Dashboard Auth.
+  Leituras atuais limitadas a 500 registros por área/2000 revisões, sem paginação.

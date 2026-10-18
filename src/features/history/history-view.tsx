@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { PageIntro } from "@/components/page-intro";
 import { Button } from "@/components/ui/button";
 import { buildExternalAssessment } from "@/lib/sat/assessments";
 import { formatCivilDate } from "@/lib/format-date";
-import type { AssessmentResult } from "@/types/domain";
+import type { AssessmentResult, SaveResult } from "@/types/domain";
 import styles from "@/features/workspace/workspace.module.css";
 
 const ORIGIN_LABELS: Record<AssessmentResult["origin"], string> = {
@@ -30,7 +30,7 @@ function AssessmentCard({ result }: { result: AssessmentResult }) {
   </article>;
 }
 
-export function HistoryView({ initialResults }: { initialResults: readonly AssessmentResult[] }) {
+export function HistoryView({ initialResults, onSave, developmentData = true }: { initialResults: readonly AssessmentResult[]; onSave?: (result: AssessmentResult) => Promise<SaveResult<AssessmentResult>>; developmentData?: boolean }) {
   const [results, setResults] = useState(initialResults);
   const [query, setQuery] = useState("");
   const [origin, setOrigin] = useState("all");
@@ -39,14 +39,18 @@ export function HistoryView({ initialResults }: { initialResults: readonly Asses
   const [newOrigin, setNewOrigin] = useState("official_self_reported");
   const [feedback, setFeedback] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const saveLock = useRef(false);
+  const createId = useRef<string | null>(null);
   const invalidPeriod = from && to && from > to;
   const visible = invalidPeriod ? [] : results.filter((result) =>
     (origin === "all" || result.origin === origin) && (!from || result.date >= from) && (!to || result.date <= to) &&
     `${result.title} ${result.notes || ""}`.toLocaleLowerCase("pt-BR").includes(query.toLocaleLowerCase("pt-BR").trim())
   ).toSorted((first, second) => second.date.localeCompare(first.date));
 
-  function addAssessment(event: FormEvent<HTMLFormElement>) {
+  async function addAssessment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (saveLock.current) return;
     const form = event.currentTarget;
     const data = new FormData(form);
     const field = (name: string) => String(data.get(name) ?? "");
@@ -54,21 +58,33 @@ export function HistoryView({ initialResults }: { initialResults: readonly Asses
       title: field("title"), date: field("date"), origin: field("origin"),
       readingWriting: field("rw"), math: field("math"), material: field("material"),
       conversionMethod: field("conversion"), notes: field("notes"),
-    }, crypto.randomUUID());
+    }, createId.current ??= crypto.randomUUID());
     if (!outcome.ok) { setError(outcome.error); setFeedback(""); return; }
-    setResults((previous) => [outcome.assessment, ...previous]);
+    let saved: AssessmentResult = outcome.assessment;
+    if (onSave) {
+      saveLock.current = true; setSaving(true);
+      try {
+        const result = await onSave(saved);
+        if (!result.ok) { setError(result.error); return; }
+        saved = result.value;
+      } catch { setError("Não foi possível salvar. Seus campos foram preservados para tentar novamente."); return; }
+      finally { saveLock.current = false; setSaving(false); }
+    }
+    createId.current = null;
+    setResults((previous) => [saved, ...previous.filter(item => item.id !== saved.id)]);
     setQuery(""); setOrigin("all"); setFrom(""); setTo(""); setError("");
-    setFeedback("Avaliação incluída apenas nesta página. Recarregar ou sair descarta o registro; não houve gravação no banco.");
+    setFeedback(onSave ? "Avaliação salva na sua conta." : "Avaliação incluída apenas nesta página. Recarregar ou sair descarta o registro; não houve gravação no banco.");
     form.reset();
     setNewOrigin("official_self_reported");
   }
 
   return <div>
-    <PageIntro eyebrow="Trajetória / Avaliações" title="Sua trajetória, com contexto." description="Cada resultado tem uma origem. Compare sua prática sem misturar acertos com pontuações." />
+    <PageIntro developmentData={developmentData} eyebrow="Trajetória / Avaliações" title="Sua trajetória, com contexto." description="Cada resultado tem uma origem. Compare sua prática sem misturar acertos com pontuações." />
     <details className={styles.disclosure}>
       <summary>Adicionar avaliação externa</summary>
-      <p className={styles.muted}>Experimente registrar uma nota autodeclarada ou estimativa de material impresso. O registro é local e temporário.</p>
+      <p className={styles.muted}>Registre uma nota autodeclarada ou estimativa de material impresso. {onSave ? "O registro será vinculado à sua conta." : "O registro é local e temporário."}</p>
       <form className={styles.form} onSubmit={addAssessment} aria-describedby={error ? "assessment-error" : undefined}>
+        <fieldset disabled={saving} className={styles.full} style={{ display: "contents" }}>
         <div className={`${styles.field} ${styles.full}`}><label htmlFor="assessment-title">Nome da avaliação</label><input id="assessment-title" name="title" required maxLength={120} placeholder="Ex.: avaliação de outubro" /></div>
         <div className={styles.field}><label htmlFor="assessment-date">Data da avaliação</label><input id="assessment-date" name="date" type="date" required /></div>
         <div className={styles.field}><label htmlFor="assessment-origin">Origem do novo registro</label><select id="assessment-origin" name="origin" value={newOrigin} onChange={(event) => setNewOrigin(event.target.value)}><option value="official_self_reported">Nota oficial autodeclarada</option><option value="printed_estimate">Estimativa de material impresso</option></select></div>
@@ -80,7 +96,8 @@ export function HistoryView({ initialResults }: { initialResults: readonly Asses
         </>}
         <div className={`${styles.field} ${styles.full}`}><label htmlFor="assessment-notes">Observações (opcional)</label><textarea id="assessment-notes" name="notes" maxLength={2000} /></div>
         {error && <p id="assessment-error" role="alert" className={`${styles.error} ${styles.full}`}>{error}</p>}
-        <div className={`${styles.actions} ${styles.full}`}><Button type="submit">Adicionar nesta página</Button><p className={styles.muted}>O total é a soma das duas seções.</p></div>
+        <div className={`${styles.actions} ${styles.full}`}><Button type="submit">{saving ? "Salvando…" : onSave ? "Salvar avaliação" : "Adicionar nesta página"}</Button><p className={styles.muted}>O total é a soma das duas seções.</p></div>
+        </fieldset>
       </form>
     </details>
     <p role="status" className={styles.feedback}>{feedback}</p>

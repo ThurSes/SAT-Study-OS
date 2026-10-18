@@ -1,66 +1,69 @@
 # SAT Study OS 1.0
 
-Uma aplicação Next.js App Router, construída nesta raiz. Inclui dashboard, estudos e agenda,
-banco de questões, diário de erros, histórico e uma sessão curta experimental de Reading and
-Writing, com componentes definitivos e reutilizáveis.
-A proposta visual foi aprovada; o modo escuro foi acrescentado aos mesmos componentes.
+Uma aplicação Next.js App Router nesta raiz, com dashboard, agenda, conteúdos, questões,
+diário de erros, avaliações externas e sessão curta experimental. Source Serif 4 + Inter,
+tokens do kit e temas claro/escuro nos mesmos componentes.
 
-## Rodar localmente
+## Executar
 
-Requer Node.js 24 LTS e npm. As versões exatas estão em package.json e package-lock.json.
+Node.js 24 LTS recomendado (mínimo 22 para o SDK Supabase) e npm.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Abra http://127.0.0.1:3000 para o dashboard e http://127.0.0.1:3000/simulador para a sessão.
-As demais áreas estão na navegação: /estudos, /questoes, /erros e /historico.
-Não é necessário configurar variáveis, Docker, Supabase CLI, banco local ou serviços externos.
-O servidor escuta somente no endereço local. Não houve publicação.
+Abra http://127.0.0.1:3000. Sem Docker, Supabase CLI ou PostgreSQL local.
+O servidor escuta somente no endereço local; a aplicação não foi publicada.
 
-## O que funciona nesta etapa
+## Conectar o Supabase hospedado
 
-- Dashboard responsivo com próxima atividade, agenda, habilidades/amostras, histórico por origem
-  e meta separada de resultados. Agenda, métricas e histórico exibidos são dados sintéticos.
-- Cinco questões originais de desenvolvimento, seleção de alternativa, navegação anterior/próxima,
-  mapa e marcação para revisão. A seleção é preservada ao navegar dentro da sessão.
-- Cronômetro local monotônico de cinco minutos, parametrizado no plano, com iniciar, pausar,
-  retomar e reiniciar mediante confirmação. Prazo exato bloqueia edição; navegação continua livre.
-- Controles por teclado, foco preservado, diálogo acessível, reduced-motion e reflow em 320 px.
-- Tokens canônicos em src/app/globals.css; fontes Source Serif 4 e Inter empacotadas localmente
-  via next/font. As licenças OFL acompanham os respectivos pacotes @fontsource-variable.
-- Estudos: busca/filtros, agenda por data, criação de atividades, mudança de status, duração,
-  dificuldade pessoal, notas e links de recursos com protocolos http/https validados.
-- Banco de questões: filtros de seção/dificuldade, busca e consulta de textos/alternativas sem
-  gabaritos. O conjunto atual contém cinco questões RW; Math mostra estado vazio honesto.
-- Diário de erros: exemplos de tentativas concluídas, resposta original, solução e explicação,
-  causa/reflexão editável e revisão local sem duplicar evento. Não há reagendamento automático.
-- Histórico: busca, filtros por origem/período e formulário local de avaliação externa. Valida
-  datas, faixas 200–800 e proveniência de material impresso, sem converter acertos em nota SAT.
+1. Copie `.env.example` para `.env.local` e preencha a URL, a chave **publicável** e a URL da
+   aplicação. `.env.local` é ignorado pelo Git. Não use `service_role` ou chave secreta.
+2. No SQL Editor do projeto, execute uma vez, em ordem, os três arquivos de
+   `supabase/migrations/`. Eles criam apenas as tabelas desta aplicação, RLS e funções.
+3. Execute `supabase/tests/ownership.sql`: testa A/B/anônimo, gabaritos privados, tentativas
+   imutáveis, retry e prazo do simulador. Todos os usuários/dados sintéticos são revertidos.
+4. Em Authentication → URL Configuration, use Site URL `http://127.0.0.1:3000` e Redirect URL
+   `http://127.0.0.1:3000/auth/callback**`. Em hospedagem, ajuste para o domínio real e HTTPS.
+5. Abra `/login`, crie uma conta, confirme o e-mail quando solicitado e entre. O serviço de
+   e-mail e seus limites seguem a configuração do projeto Supabase.
 
-Nas quatro áreas novas, alterações existem somente na página atual: não são gravadas em banco
-e não atualizam o dashboard. Recarregar descarta os registros locais. O diário contém questões
-distintas das questões ativas, e soluções nunca são enviadas junto ao catálogo/simulador.
+A sessão é validada no servidor, renovada por Proxy e transmitida por cookies. O dono de cada
+mutação vem da sessão; RLS aplica o mesmo isolamento no acesso direto à API. Gabaritos ficam
+no schema privado, sem leitura de aluno. A correção e a criação do erro ocorrem em uma RPC
+atômica com UUID idempotente. Nenhuma chave administrativa é necessária na aplicação.
 
-Respostas e marcações ficam **somente em memória**. Recarregar, sair da rota ou fechar a aba
-perde a sessão; não há persistência de respostas, login, salvamento remoto, correção, nota ou adaptação real.
-A pausa é demonstrativa. Esta sessão curta não equivale a uma aplicação oficial do SAT.
+[SSR oficial](https://supabase.com/docs/guides/auth/server-side/creating-a-client),
+[Auth por senha](https://supabase.com/docs/guides/auth/passwords) e
+[RLS](https://supabase.com/docs/guides/database/postgres/row-level-security).
 
-Fixtures são carregadas no servidor somente em NODE_ENV=development. Componentes recebem dados
-e callbacks, sem importar fixtures ou banco. Contratos canônicos ficam em src/types/domain.ts;
-regras puras de sessão ficam em src/lib/sat/session.ts. Nenhum gabarito integra esses contratos.
+## Funcionalidades
 
-```sh
-npm run build
-npm start
-```
+- `/`: agenda real do dia, próxima atividade, histórico e amostra das últimas tentativas.
+  Conta nova começa vazia; não recebe resultados ou meta inventados.
+- `/estudos`: atividades, agenda, status, dificuldade pessoal, duração, recurso e notas.
+- `/conteudos`: leitura pública de 32 aulas originais (11 RW/21 Math), oito domínios, objetivos,
+  explicações, exemplos resolvidos e armadilhas. Conta autenticada salva notas e conclusão.
+- `/questoes`: cinco questões RW originais, filtros e prática individual corrigida no servidor.
+  Após errar, classifique interpretação, conteúdo ou falta de atenção e salve uma reflexão.
+- `/erros`: resposta original preservada, explicação, causa/reflexão e eventos de revisão.
+- `/historico`: avaliações por origem e período; resultados oficiais autodeclarados e estimativas
+  impressas continuam separados de métricas experimentais. Notas externas validam 200–800/seção.
+- `/simulador`: cinco minutos, alternativas, navegação, mapa e marcações. Conta autenticada
+  preserva respostas e cronômetro. Prazo do banco é a autoridade; a UI usa relógio monotônico.
+  Escritas usam revisão de concorrência e retry idempotente. Conflito entre abas pede recarregar.
+- `/login` e `/recuperar`: cadastro, entrada, saída, confirmação e recuperação de senha.
 
-Produção exibe um aviso de configuração; não apresenta exemplos como histórico real. Isso é
-intencional enquanto conta e persistência não forem implementadas. Para avaliar as duas telas,
-use npm run dev.
+Os componentes recebem dados e callbacks. Só exibem confirmação de salvamento após resposta
+positiva do servidor; falhas preservam os campos. Tema usa localStorage; estudos não usam
+persistência alternativa no navegador.
 
-## Verificar
+Sem configuração Supabase, desenvolvimento mantém exemplos identificados, sem salvamento,
+em vez de simular integração. Produção mostra aviso nas áreas pessoais; conteúdos permanecem
+públicos. Catálogo original de questões é compartilhado entre os mesmos componentes.
+
+## Verificações
 
 ```sh
 npm run typecheck
@@ -68,43 +71,29 @@ npm run lint
 npm test
 npm run test:e2e
 npm run build
+npm start
 ```
 
-Vitest cobre respostas, versões, marcações, estados, fronteiras do prazo com relógio injetado e
-validação de avaliações externas com origens distintas.
-Playwright cobre a jornada integrada, teclado/foco, expiração acelerada, reload e layouts
-320/360/768/1440, além de filtros, formulários locais e revisão das áreas expandidas nos dois temas.
-As capturas ficam em artifacts/screenshots, fora do Git.
-E2E usa Microsoft Edge instalado. Sem Edge, instale Chromium com npx playwright install chromium
-e remova channel: "msedge" do projeto em playwright.config.ts.
+Vitest cobre sessão/prazo, avaliações, cobertura das aulas e validação de entradas/redirecionamentos.
+Playwright/Edge cobre as jornadas de desenvolvimento e a leitura/login, teclado/foco e reflow
+320/360/768/1440 nos dois temas. Capturas ficam em `artifacts/screenshots`, fora do Git.
+As jornadas demonstrativas exigem servidor **sem** as variáveis Supabase; com projeto configurado,
+execute `npm run test:e2e -- tests/content-auth.spec.ts` para os fluxos públicos. Persistência/Auth/RLS
+exigem também verificações reais no projeto hospedado; mocks não comprovam a conexão.
 
-O lockfile mantém ESLint 9 para respeitar os peers dos plugins React/acessibilidade do Next.
-O npm audit identifica cinco alertas transitivos de desenvolvimento na cadeia
-eslint-config-next → fast-glob → micromatch → braces (GHSA-vfj7-8cjw-p6xm); a versão publicada
-mais recente de braces ainda é afetada. Não foi aplicado downgrade do Next nem --force.
-A auditoria de dependências de produção deve ser conferida com npm audit --omit=dev.
+O lockfile mantém ESLint 9 para respeitar os peers do Next. Há cinco alertas high transitivos
+somente de lint (`braces` via `eslint-config-next`), sem patch publicado na última verificação.
+Confira dependências de produção com `npm audit --omit=dev`; não use `--force` para esconder conflitos.
 
-## Direção visual e próximos limites
+## Limites atuais
 
-Preservados os tokens do kit, espaçamento e Source Serif 4 + Inter. Os cabeçalhos das duas telas
-oferecem alternância entre claro e escuro. A preferência inicial acompanha o sistema; a escolha
-explícita é guardada em localStorage somente para o tema. Se o armazenamento estiver bloqueado,
-a alternância ainda funciona na página atual. Respostas e marcações não usam esse armazenamento.
-Foi avaliado o [loader de Nawsome no Uiverse](https://uiverse.io/Nawsome/brave-turtle-26), licença
-MIT. Não foi incorporado: animação e gradiente sem ganho neste fluxo; loading usa texto de status.
-Controles simples usam HTML nativo e botão/diálogo shadcn com Radix para o foco do diálogo.
+A biblioteca oferece aulas introdutórias para o mapa de habilidades; não é material oficial nem
+uma promessa de domínio. O banco ainda tem apenas cinco questões RW. Simulador curto permanece
+sem correção/adaptação automática e não gera resultado no histórico; use a prática individual para
+correção e diário. A pausa é didática, sem equivalência às regras de uma aplicação oficial.
+Não há reagendamento automático de revisão, relatórios completos ou publicação. Leituras pessoais
+são limitadas a 500 registros recentes por área (até 2000 eventos de revisão); ainda não há paginação.
 
-Agentes reconhecidos: frontend, sat-engine e qa. O principal mantém contratos e integração;
-a delegação usa arquivos exclusivos, sem subdelegação. next.config.ts desativa a geração automática
-de instruções pelo Next para preservar AGENTS.md e fixa a raiz do Turbopack neste repositório.
-
-[Estado atual](context/STATE.md), [decisões](context/DECISIONS.md), [produto](docs/PRODUCT.md),
+[Estado](context/STATE.md), [decisões](context/DECISIONS.md), [produto](docs/PRODUCT.md),
 [arquitetura](docs/ARCHITECTURE.md), [visual](docs/DESIGN_SYSTEM.md),
-[motor](docs/SAT_ENGINE.md) e [qualidade](docs/QUALITY.md) permanecem as referências do projeto.
-Os prompts START, TASK, REVIEW e RESUME continuam em prompts/.
-
-Dashboard e simulador tiveram a proposta visual aprovada, e a expansão da interface foi solicitada
-na mesma aplicação. Supabase hospedado, Auth/RLS, persistência, correção e adaptação reais,
-recomendações e relatórios completos pertencem às etapas futuras; nenhum serviço externo foi
-configurado nesta entrega. A interface expandida não equivale à conclusão dos aceites persistidos
-do produto 1.0.
+[motor](docs/SAT_ENGINE.md) e [qualidade](docs/QUALITY.md).

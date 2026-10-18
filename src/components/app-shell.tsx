@@ -1,20 +1,25 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, BookOpen, History, LayoutDashboard, LibraryBig, NotebookPen, PanelTop, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, BookOpen, GraduationCap, History, LayoutDashboard, LibraryBig, NotebookPen, PanelTop, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getIdentity } from "@/lib/supabase/server";
+import { signOut } from "@/features/auth/actions";
+import { Button } from "@/components/ui/button";
 
-type Page = "dashboard" | "study" | "questions" | "errors" | "history" | "simulator";
+type Page = "dashboard" | "study" | "content" | "questions" | "errors" | "history" | "simulator";
 const navigation: { page: Page; href: string; label: string; icon: typeof LayoutDashboard }[] = [
   { page: "dashboard", href: "/", label: "Visão geral", icon: LayoutDashboard },
   { page: "study", href: "/estudos", label: "Estudos", icon: BookOpen },
+  { page: "content", href: "/conteudos", label: "Conteúdos", icon: GraduationCap },
   { page: "questions", href: "/questoes", label: "Questões", icon: LibraryBig },
   { page: "simulator", href: "/simulador", label: "Simulador", icon: PanelTop },
   { page: "errors", href: "/erros", label: "Diário de erros", icon: NotebookPen },
   { page: "history", href: "/historico", label: "Histórico", icon: History },
 ];
 
-export function AppShell({ children, activePage, developmentData = false }: { children: ReactNode; activePage: Page; developmentData?: boolean }) {
+export async function AppShell({ children, activePage, developmentData = false }: { children: ReactNode; activePage: Page; developmentData?: boolean }) {
   const isSimulator = activePage === "simulator";
+  const user = await getIdentity();
   return (
     <div className={isSimulator ? "app-shell app-shell-simulator" : "app-shell"}>
       <a className="skip-link" href="#main-content">Pular para o conteúdo</a>
@@ -43,6 +48,7 @@ export function AppShell({ children, activePage, developmentData = false }: { ch
           <div className="workspace-actions">
             {developmentData && <span className="environment-label"><span aria-hidden="true" /> Ambiente de desenvolvimento</span>}
             <ThemeToggle />
+            {user ? <form action={signOut}><Button variant="ghost" size="sm" type="submit">Sair da conta</Button></form> : <Link className="text-link" href="/login">Entrar</Link>}
           </div>
         </header>
         <main id="main-content" className={isSimulator ? "app-main app-main-simulator" : "app-main"} tabIndex={-1}>{children}</main>
