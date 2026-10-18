@@ -10,7 +10,11 @@
 | npm e um lockfile na implementação | instalação simples e reproduzível |
 | Delegação proporcional a três papéis existentes | ganho de especialização sem criar coordenação desnecessária |
 
-Estas escolhas compõem a proposta do kit; o START confirma decisões estruturais relevantes
-com o usuário quando ainda não houver autorização. Aprovação visual ficará em STATE.
-Adicionar aqui apenas decisão durável: problema, escolha, motivo e consequência em poucas linhas.
-Não usar como diário de commits ou repetir regras do AGENTS.
+Estrutura e conjunto inicial aprovados pelo usuário em 18/10/2026: fundação, contratos antes
+das telas e componentes definitivos de dashboard/simulador. A aprovação visual permanece separada.
+
+| Decisão da fundação | Motivo e consequência |
+|---|---|
+| Fixtures só no servidor e em desenvolvimento; componentes recebem dados/callbacks | integrar Supabase futuramente sem substituir a composição visual; produção mostra aviso |
+| Sessão curta de cinco questões/cinco minutos, estado só em memória | interações úteis agora, sem banco alternativo ou falsa persistência; pausa explicitamente demonstrativa |
+| Fontes locais via pacotes OFL e next/font | manter identidade sem requisição de fontes externas durante build ou uso |

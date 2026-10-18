@@ -1,102 +1,89 @@
-# SAT Study OS — starter enxuto para 1.0
+# SAT Study OS 1.0
 
-Este pacote prepara o desenvolvimento. Contém 18 arquivos de orientação e configuração,
-sem site, dependências instaladas, banco criado ou código de aplicação.
-Uma única aplicação será construída gradualmente na pasta `sat-study-os`.
+Uma aplicação Next.js App Router, construída nesta raiz. A fundação inclui dashboard e uma
+sessão curta experimental de Reading and Writing, com componentes definitivos e reutilizáveis.
+A proposta visual aguarda avaliação antes de expandir as demais áreas do produto.
 
-## Começar
+## Rodar localmente
 
-1. Extraia `sat-study-os-starter-clean.zip` em uma pasta de trabalho nova. Abra a pasta interna
-   `sat-study-os`; confirme que `AGENTS.md` e `.codex` estão na raiz. Não sobreponha um app existente.
-2. No VS Code, use **Arquivo → Abrir Pasta**, selecione essa pasta e abra a extensão oficial
-   **Codex, da OpenAI**. Entre com sua conta e escolha trabalhar localmente.
-3. Leia o AGENTS e confira estes arquivos antes de confiar no projeto quando o cliente perguntar.
-4. No chat do Codex, envie: **Leia e execute `prompts/START.md`.** Também pode copiar o conteúdo
-   inteiro do arquivo para o chat. Ele examinará o ambiente e trará uma sequência curta de trabalho.
-5. Aprove as decisões estruturais relevantes solicitadas. As escolhas deste kit são a proposta
-   padrão; não é preciso aprovar cada biblioteca, tabela ou arquivo. Depois ele constrói a base e
-   mostra dashboard e simulador representativos para aprovação visual, na própria aplicação.
-6. Após avaliar as duas telas, envie os ajustes ou aprove e autorize continuar. O trabalho segue
-   por funcionalidades e dependências, sem uma sequência obrigatória de checkpoints numerados.
+Requer Node.js 24 LTS e npm. As versões exatas estão em package.json e package-lock.json.
 
-Para o CLI já instalado, abra um terminal nessa pasta e execute `codex`; envie o mesmo START.
-No app desktop do ChatGPT, selecione Codex, trabalho local e esta pasta como projeto principal;
-envie o mesmo prompt. Abrir no VS Code é opcional nesse caminho.
-Enquanto não houver package.json, não existe comando npm para iniciar o site. O START criará
-os scripts e atualizará aqui as instruções de execução. Para implementar, tenha Node LTS
-suportado pelas dependências selecionadas, npm e Git; confira versões ao iniciar.
+```sh
+npm ci
+npm run dev
+```
 
-## Os quatro prompts
+Abra http://127.0.0.1:3000 para o dashboard e http://127.0.0.1:3000/simulador para a sessão.
+Não é necessário configurar variáveis, Docker, Supabase CLI, banco local ou serviços externos.
+O servidor escuta somente no endereço local. Não houve publicação.
 
-| Necessidade | Como pedir no chat |
-|---|---|
-| Começar | Leia e execute `prompts/START.md`. |
-| Implementar | Use `prompts/TASK.md`. Tarefa: registrar e listar resultados de simulados externos por origem. Aceite: salvar, recarregar e filtrar por origem. |
-| Revisar | Use `prompts/REVIEW.md` para revisar o diff atual, com foco em salvamento de respostas. |
-| Retomar | Leia e execute `prompts/RESUME.md`; continue o trabalho pendente. |
+## O que funciona nesta etapa
 
-TASK recebe sua tarefa em linguagem natural; REVIEW recebe arquivos, funcionalidade ou diff.
-Não há campos obrigatórios para preencher nem necessidade de produzir um plano em arquivo.
-Uma autorização para implementar um conjunto de funções permite continuar esse conjunto; o agente
-não deve pedir “posso continuar?” após cada etapa rotineira.
+- Dashboard responsivo com próxima atividade, agenda, habilidades/amostras, histórico por origem
+  e meta separada de resultados. Agenda, métricas e histórico exibidos são dados sintéticos.
+- Cinco questões originais de desenvolvimento, seleção de alternativa, navegação anterior/próxima,
+  mapa e marcação para revisão. A seleção é preservada ao navegar dentro da sessão.
+- Cronômetro local monotônico de cinco minutos, parametrizado no plano, com iniciar, pausar,
+  retomar e reiniciar mediante confirmação. Prazo exato bloqueia edição; navegação continua livre.
+- Controles por teclado, foco preservado, diálogo acessível, reduced-motion e reflow em 320 px.
+- Tokens canônicos em src/app/globals.css; fontes Source Serif 4 e Inter empacotadas localmente
+  via next/font. As licenças OFL acompanham os respectivos pacotes @fontsource-variable.
 
-## Supabase hospedado, sem Docker
+Respostas e marcações ficam **somente em memória**. Recarregar, sair da rota ou fechar a aba
+perde a sessão; não há localStorage, login, salvamento remoto, correção, nota ou adaptação real.
+A pausa é demonstrativa. Esta sessão curta não equivale a uma aplicação oficial do SAT.
 
-Comece a interface com fixtures identificadas como **dados de desenvolvimento**, na mesma app.
-Quando chegar à persistência, crie ou selecione um projeto Supabase hospedado de desenvolvimento
-e configure `.env.local` fora do Git: `NEXT_PUBLIC_SUPABASE_URL` e
-`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Uma chave pública não substitui as políticas RLS.
-Configure URLs de redirecionamento Auth para o endereço local e, depois, para o host escolhido.
-Chaves secretas/administrativas, se necessárias, ficam somente no servidor e fora do chat.
+Fixtures são carregadas no servidor somente em NODE_ENV=development. Componentes recebem dados
+e callbacks, sem importar fixtures ou banco. Contratos canônicos ficam em src/types/domain.ts;
+regras puras de sessão ficam em src/lib/sat/session.ts. Nenhum gabarito integra esses contratos.
 
-O Codex prepara SQL versionado em `supabase/migrations/`; aplique no SQL Editor do projeto
-correto e registre brevemente no STATE o que foi aplicado. Dashboard e SDK permitem desenvolver
-e verificar o banco remoto: Supabase CLI, PostgreSQL local e Docker Desktop não são necessários.
-Use duas contas de teste sem dados reais para verificar isolamento. Sem acesso ao banco, marque
-a integração pendente e continue UI/domínio independentes; não afirme que o banco foi testado.
+```sh
+npm run build
+npm start
+```
 
-## Codex: configuração conferida em 18/10/2026
+Produção exibe um aviso de configuração; não apresenta exemplos como histórico real. Isso é
+intencional enquanto conta e persistência não forem implementadas. Para avaliar as duas telas,
+use npm run dev.
 
-O CLI e a extensão compartilham as camadas de configuração. Este kit limita subagentes por
-`[agents].max_concurrent_threads_per_session = 3`, excluindo o principal. Os arquivos autônomos
-em `.codex/agents/` declaram `name`, `description` e `developer_instructions`. Modelos são herdados.
-Não há parâmetros de Agents API/SDK, chaves de aprovação ou permissões ampliadas neste kit.
-Fontes: [subagentes](https://learn.chatgpt.com/docs/agent-configuration/subagents),
-[configuração](https://learn.chatgpt.com/docs/config-file/config-basic) e
-[configuração da extensão](https://learn.chatgpt.com/docs/ide/settings).
+## Verificar
 
-`AGENTS.md` é descoberto como instrução do repositório; a configuração de projeto depende de
-confiança e políticas do ambiente. `docs`, `context` e `prompts` são convenções lidas sob demanda.
-Fonte: [instruções AGENTS](https://learn.chatgpt.com/docs/agent-configuration/agents-md).
-Reinicie a sessão após mudar configuração. Confira a versão do CLI com `codex --version`;
-a extensão pode usar uma versão própria. Não há promessa de uma versão mínima universal.
+```sh
+npm run typecheck
+npm run lint
+npm test
+npm run test:e2e
+npm run build
+```
 
-No primeiro uso, peça que o Codex confirme a configuração carregada e os papéis disponíveis.
-Se uma versão antiga rejeitar a chave, preserve o arquivo e retire temporariamente o bloco
-`[agents]` do config; não substitua por uma chave imaginada. Se não descobrir agentes, o principal
-pode ler as instruções dos três TOML e trabalhar sequencialmente. Registre a limitação sem
-bloquear desenvolvimento ou afirmar que houve revisão independente. Atualizar o cliente é opção.
+Vitest cobre respostas, versões, marcações, estados e fronteiras do prazo com relógio injetado.
+Playwright cobre a jornada integrada, teclado/foco, expiração acelerada, reload e layouts
+320/360/768/1440. As capturas ficam em artifacts/screenshots, fora do Git.
+E2E usa Microsoft Edge instalado. Sem Edge, instale Chromium com npx playwright install chromium
+e remova channel: "msedge" do projeto em playwright.config.ts.
 
-## O que mudou em relação ao ZIP anterior
+O lockfile mantém ESLint 9 para respeitar os peers dos plugins React/acessibilidade do Next.
+O npm audit identifica cinco alertas transitivos de desenvolvimento na cadeia
+eslint-config-next → fast-glob → micromatch → braces (GHSA-vfj7-8cjw-p6xm); a versão publicada
+mais recente de braces ainda é afetada. Não foi aplicado downgrade do Next nem --force.
+A auditoria de dependências de produção deve ser conferida com npm audit --omit=dev.
 
-Preservados: monólito modular, TypeScript strict, Supabase, proteção por usuário, questões
-versionadas, honestidade das métricas, Source Serif 4 + Inter e visual editorial.
-Eliminados: estrutura de 59 arquivos, 13 prompts extensos, sequência rígida C01–C11,
-logs repetitivos, catálogo grande como pré-requisito e exigência de banco local para começar.
-Agora há cinco documentos temáticos, quatro prompts e dois arquivos curtos de contexto.
-Testes acompanham o risco da função; dependência externa pendente não bloqueia tudo.
+## Direção visual e próximos limites
 
-## Verificação deste pacote e decisões posteriores
+Preservados o tema editorial claro, os tokens do kit, espaçamento e Source Serif 4 + Inter.
+Foi avaliado o [loader de Nawsome no Uiverse](https://uiverse.io/Nawsome/brave-turtle-26), licença
+MIT. Não foi incorporado: animação e gradiente sem ganho neste fluxo; loading usa texto de status.
+Controles simples usam HTML nativo e botão/diálogo shadcn com Radix para o foco do diálogo.
 
-O pacote é documental: TOML, referências, estrutura e conteúdo são verificados na entrega;
-isso não equivale a executar os agentes dentro da sua instalação nem testar um app inexistente.
-Verificado em 18/10/2026: 18 arquivos não vazios, quatro TOML válidos, quatro prompts,
-36 referências internas completas e 11 pares de contraste. AGENTS tem 49 linhas.
-O ZIP foi conferido por integridade e comparação de todas as entradas com os arquivos originais.
-Confirmar depois: versões exatas e lockfile, descoberta dos agentes, projeto/região Supabase,
-variáveis de ambiente, redirects/e-mail de Auth, catálogo revisado e hospedagem/orçamento.
-O SQL inicial será criado somente quando a funcionalidade precisar; não existe schema implantado.
-Deploy público e serviços pagos dependem de autorização. Nenhum segredo precisa entrar no chat.
+Agentes reconhecidos: frontend, sat-engine e qa. O principal mantém contratos e integração;
+a delegação usa arquivos exclusivos, sem subdelegação. next.config.ts desativa a geração automática
+de instruções pelo Next para preservar AGENTS.md e fixa a raiz do Turbopack neste repositório.
 
-Referência de integração sem banco local:
-[Supabase + Next.js](https://supabase.com/docs/guides/getting-started/quickstarts/nextjs).
+[Estado atual](context/STATE.md), [decisões](context/DECISIONS.md), [produto](docs/PRODUCT.md),
+[arquitetura](docs/ARCHITECTURE.md), [visual](docs/DESIGN_SYSTEM.md),
+[motor](docs/SAT_ENGINE.md) e [qualidade](docs/QUALITY.md) permanecem as referências do projeto.
+Os prompts START, TASK, REVIEW e RESUME continuam em prompts/.
+
+A próxima etapa é avaliar visualmente dashboard e simulador. Supabase hospedado, Auth/RLS,
+estudos persistidos e expansão do motor pertencem às etapas futuras; nenhum serviço externo
+foi configurado nesta entrega.
