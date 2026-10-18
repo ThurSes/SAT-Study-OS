@@ -3,7 +3,9 @@
 Visual de caderno editorial com precisão analítica: espaço em branco, hierarquia forte,
 alinhamento e densidade intencional. Personalidade vem de composição e tipografia.
 Toda tela deve esclarecer onde o aluno está, o significado dos dados e a próxima ação.
-Tema claro é a direção inicial; não criar um segundo design system.
+Tema claro é a direção inicial. O modo escuro, solicitado após a aprovação visual, usa os mesmos
+componentes e tokens semânticos, com valores alternativos em `globals.css`; não há um segundo
+design system. Seguir a preferência do sistema até uma escolha explícita de claro/escuro.
 
 ## Aprovação visual na mesma aplicação
 

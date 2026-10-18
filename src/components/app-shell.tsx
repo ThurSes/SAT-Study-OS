@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, LayoutDashboard, LibraryBig, PanelTop, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type Page = "dashboard" | "simulator";
 const navigation: { page: Page; href: string; label: string; icon: typeof LayoutDashboard }[] = [
@@ -40,7 +41,10 @@ export function AppShell({ children, activePage, developmentData = false }: { ch
       <div className="app-workspace">
         <header className="workspace-header">
           {isSimulator ? <Link className="simulator-return" href="/"><ArrowLeft size={16} aria-hidden="true" /> Voltar à visão geral</Link> : <div className="workspace-breadcrumb"><span>Seu espaço</span><span aria-hidden="true">/</span><strong>Visão geral</strong></div>}
-          {developmentData && <span className="environment-label"><span aria-hidden="true" /> Ambiente de desenvolvimento</span>}
+          <div className="workspace-actions">
+            {developmentData && <span className="environment-label"><span aria-hidden="true" /> Ambiente de desenvolvimento</span>}
+            <ThemeToggle />
+          </div>
         </header>
         <main id="main-content" className={isSimulator ? "app-main app-main-simulator" : "app-main"} tabIndex={-1}>{children}</main>
         <footer className="workspace-footer"><span>SAT Study OS</span><span>Construindo uma rotina com intenção <ArrowUpRight size={13} aria-hidden="true" /></span></footer>

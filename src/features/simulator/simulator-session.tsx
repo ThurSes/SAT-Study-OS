@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Bookmark, Check, Clock3, List, Pause, Play, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { createSession, getRemainingMs, transitionSession, type SessionEvent, type SessionState } from "@/lib/sat/session";
 import type { Answer, Question, SimulatorPlan, Skill } from "@/types/domain";
@@ -110,7 +111,10 @@ export function SimulatorSession({ plan, questions, skills }: {
     <header className={styles.header}>
       <Link href="/" className={styles.wordmark} aria-label="SAT Study OS — dashboard"><span>SAT<span className={styles.brandDot}>.</span></span><small>STUDY OS</small></Link>
       <div className={styles.headerContext}><span>ESPAÇO DE PRÁTICA</span><strong>Reading and Writing</strong></div>
-      <Button asChild variant="ghost"><Link href="/"><ArrowLeft size={16} aria-hidden="true" /><span>Dashboard</span></Link></Button>
+      <div className={styles.headerActions}>
+        <Button asChild variant="ghost" className={styles.backButton}><Link href="/" aria-label="Voltar ao dashboard"><ArrowLeft size={16} aria-hidden="true" /><span className={styles.backLabel}>Dashboard</span></Link></Button>
+        <ThemeToggle />
+      </div>
     </header>
 
     <main id="main-content" className={styles.main}>

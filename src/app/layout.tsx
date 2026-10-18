@@ -17,6 +17,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// Apply the preference before first paint; no theme library or server cookie is needed.
+const themeInitialization = `(function(){var saved=null;try{saved=localStorage.getItem('sat-study-os.theme')}catch(e){}var theme=saved==='light'||saved==='dark'?saved:window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=theme})()`;
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="pt-BR" className={`${inter.variable} ${sourceSerif.variable}`}><body>{children}</body></html>;
+  return <html lang="pt-BR" className={`${inter.variable} ${sourceSerif.variable}`} suppressHydrationWarning>
+    <head><script dangerouslySetInnerHTML={{ __html: themeInitialization }} /></head>
+    <body>{children}</body>
+  </html>;
 }

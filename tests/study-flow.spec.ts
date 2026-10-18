@@ -95,3 +95,86 @@ test("capture desktop and mobile for visual approval", async ({ page }) => {
   }
   expect(errors).toEqual([]);
 });
+
+test("theme follows the system, persists across routes and does not reset an active session", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: "Ativar modo claro", exact: true }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.getByRole("link", { name: "Simulador", exact: true }).click();
+  await expect(page).toHaveURL("/simulador", { timeout: 30_000 });
+  await page.getByRole("button", { name: "Iniciar sessão", exact: true }).click();
+  await page.getByRole("radio").first().check();
+  const toggle = page.getByRole("button", { name: "Ativar modo escuro", exact: true });
+  await toggle.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.getByRole("button", { name: "Ativar modo claro", exact: true })).toBeFocused();
+  await expect(page.getByRole("radio").first()).toBeChecked();
+  await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Reiniciar", exact: true }).click();
+  await expect(page.getByRole("alertdialog")).toBeVisible();
+  await page.getByRole("button", { name: "Continuar aqui", exact: true }).click();
+  await page.getByRole("link", { name: "Voltar ao dashboard", exact: true }).click();
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(errors).toEqual([]);
+});
+
+test("dark tokens remain readable on desktop/mobile and the toggle tolerates blocked storage", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    const getItem = Storage.prototype.getItem;
+    const setItem = Storage.prototype.setItem;
+    Storage.prototype.getItem = function (key) {
+      if (key === "sat-study-os.theme") throw new DOMException("Storage disabled", "SecurityError");
+      return getItem.call(this, key);
+    };
+    Storage.prototype.setItem = function (key, value) {
+      if (key === "sat-study-os.theme") throw new DOMException("Storage disabled", "SecurityError");
+      return setItem.call(this, key, value);
+    };
+  });
+  for (const width of [320, 360, 768, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    for (const path of ["/", "/simulador"]) {
+      await page.goto(path);
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      const ratios = await page.evaluate(() => {
+        const css = getComputedStyle(document.documentElement);
+        const luminance = (token: string) => {
+          const hex = css.getPropertyValue(`--color-${token}`).trim().slice(1);
+          const linear = [0, 2, 4].map((offset) => {
+            const channel = parseInt(hex.slice(offset, offset + 2), 16) / 255;
+            return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+          });
+          return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+        };
+        return [
+          ["ink", "canvas", 4.5], ["text-muted", "surface", 4.5],
+          ["on-brand", "brand", 4.5], ["on-feature", "feature", 4.5],
+          ["ink", "selected", 4.5], ["brand", "selected", 4.5],
+          ["disabled-text", "disabled-surface", 4.5],
+          ["border-control", "surface", 3], ["focus", "canvas", 3],
+        ].map(([foreground, background, minimum]) => {
+          const first = luminance(String(foreground));
+          const second = luminance(String(background));
+          return { pair: `${foreground}/${background}`, ratio: (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05), minimum: Number(minimum) };
+        });
+      });
+      for (const result of ratios) expect(result.ratio, result.pair).toBeGreaterThanOrEqual(result.minimum);
+      if (width === 360 || width === 1440) {
+        await page.evaluate(() => document.fonts.ready);
+        await page.screenshot({ path: `artifacts/screenshots/${path === "/" ? "dashboard" : "simulador"}-dark-${width === 360 ? "mobile" : "desktop"}.png`, fullPage: true, animations: "disabled" });
+      }
+      await page.getByRole("button", { name: "Ativar modo claro", exact: true }).click();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    }
+  }
+});
