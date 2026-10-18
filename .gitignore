@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+coverage/
+playwright-report/
+test-results/
+.vitest/
+.env*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
