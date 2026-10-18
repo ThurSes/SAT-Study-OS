@@ -1,7 +1,8 @@
 # SAT Study OS 1.0
 
-Uma aplicação Next.js App Router, construída nesta raiz. A fundação inclui dashboard e uma
-sessão curta experimental de Reading and Writing, com componentes definitivos e reutilizáveis.
+Uma aplicação Next.js App Router, construída nesta raiz. Inclui dashboard, estudos e agenda,
+banco de questões, diário de erros, histórico e uma sessão curta experimental de Reading and
+Writing, com componentes definitivos e reutilizáveis.
 A proposta visual foi aprovada; o modo escuro foi acrescentado aos mesmos componentes.
 
 ## Rodar localmente
@@ -14,6 +15,7 @@ npm run dev
 ```
 
 Abra http://127.0.0.1:3000 para o dashboard e http://127.0.0.1:3000/simulador para a sessão.
+As demais áreas estão na navegação: /estudos, /questoes, /erros e /historico.
 Não é necessário configurar variáveis, Docker, Supabase CLI, banco local ou serviços externos.
 O servidor escuta somente no endereço local. Não houve publicação.
 
@@ -28,6 +30,18 @@ O servidor escuta somente no endereço local. Não houve publicação.
 - Controles por teclado, foco preservado, diálogo acessível, reduced-motion e reflow em 320 px.
 - Tokens canônicos em src/app/globals.css; fontes Source Serif 4 e Inter empacotadas localmente
   via next/font. As licenças OFL acompanham os respectivos pacotes @fontsource-variable.
+- Estudos: busca/filtros, agenda por data, criação de atividades, mudança de status, duração,
+  dificuldade pessoal, notas e links de recursos com protocolos http/https validados.
+- Banco de questões: filtros de seção/dificuldade, busca e consulta de textos/alternativas sem
+  gabaritos. O conjunto atual contém cinco questões RW; Math mostra estado vazio honesto.
+- Diário de erros: exemplos de tentativas concluídas, resposta original, solução e explicação,
+  causa/reflexão editável e revisão local sem duplicar evento. Não há reagendamento automático.
+- Histórico: busca, filtros por origem/período e formulário local de avaliação externa. Valida
+  datas, faixas 200–800 e proveniência de material impresso, sem converter acertos em nota SAT.
+
+Nas quatro áreas novas, alterações existem somente na página atual: não são gravadas em banco
+e não atualizam o dashboard. Recarregar descarta os registros locais. O diário contém questões
+distintas das questões ativas, e soluções nunca são enviadas junto ao catálogo/simulador.
 
 Respostas e marcações ficam **somente em memória**. Recarregar, sair da rota ou fechar a aba
 perde a sessão; não há persistência de respostas, login, salvamento remoto, correção, nota ou adaptação real.
@@ -56,9 +70,11 @@ npm run test:e2e
 npm run build
 ```
 
-Vitest cobre respostas, versões, marcações, estados e fronteiras do prazo com relógio injetado.
+Vitest cobre respostas, versões, marcações, estados, fronteiras do prazo com relógio injetado e
+validação de avaliações externas com origens distintas.
 Playwright cobre a jornada integrada, teclado/foco, expiração acelerada, reload e layouts
-320/360/768/1440. As capturas ficam em artifacts/screenshots, fora do Git.
+320/360/768/1440, além de filtros, formulários locais e revisão das áreas expandidas nos dois temas.
+As capturas ficam em artifacts/screenshots, fora do Git.
 E2E usa Microsoft Edge instalado. Sem Edge, instale Chromium com npx playwright install chromium
 e remova channel: "msedge" do projeto em playwright.config.ts.
 
@@ -87,6 +103,8 @@ de instruções pelo Next para preservar AGENTS.md e fixa a raiz do Turbopack ne
 [motor](docs/SAT_ENGINE.md) e [qualidade](docs/QUALITY.md) permanecem as referências do projeto.
 Os prompts START, TASK, REVIEW e RESUME continuam em prompts/.
 
-Dashboard e simulador tiveram a proposta visual aprovada. Supabase hospedado, Auth/RLS, estudos
-persistidos e expansão do motor pertencem às etapas futuras; nenhum serviço externo foi
-configurado nesta entrega.
+Dashboard e simulador tiveram a proposta visual aprovada, e a expansão da interface foi solicitada
+na mesma aplicação. Supabase hospedado, Auth/RLS, persistência, correção e adaptação reais,
+recomendações e relatórios completos pertencem às etapas futuras; nenhum serviço externo foi
+configurado nesta entrega. A interface expandida não equivale à conclusão dos aceites persistidos
+do produto 1.0.

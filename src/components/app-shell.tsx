@@ -1,12 +1,16 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, LayoutDashboard, LibraryBig, PanelTop, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, BookOpen, History, LayoutDashboard, LibraryBig, NotebookPen, PanelTop, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-type Page = "dashboard" | "simulator";
+type Page = "dashboard" | "study" | "questions" | "errors" | "history" | "simulator";
 const navigation: { page: Page; href: string; label: string; icon: typeof LayoutDashboard }[] = [
   { page: "dashboard", href: "/", label: "Visão geral", icon: LayoutDashboard },
+  { page: "study", href: "/estudos", label: "Estudos", icon: BookOpen },
+  { page: "questions", href: "/questoes", label: "Questões", icon: LibraryBig },
   { page: "simulator", href: "/simulador", label: "Simulador", icon: PanelTop },
+  { page: "errors", href: "/erros", label: "Diário de erros", icon: NotebookPen },
+  { page: "history", href: "/historico", label: "Histórico", icon: History },
 ];
 
 export function AppShell({ children, activePage, developmentData = false }: { children: ReactNode; activePage: Page; developmentData?: boolean }) {
@@ -29,18 +33,13 @@ export function AppShell({ children, activePage, developmentData = false }: { ch
               </Link>
             ))}
           </nav>
-          <div className="sidebar-future">
-            <p className="eyebrow nav-caption">Mais adiante</p>
-            <p><LibraryBig size={18} aria-hidden="true" /> Biblioteca de estudo</p>
-            <span>Disponível em uma próxima etapa.</span>
-          </div>
         </div>
         <div className="sidebar-note"><Sparkles size={18} aria-hidden="true" /><p>Um pouco de foco.<br /><strong>Um novo horizonte.</strong></p></div>
         <p className="sidebar-version">Uma rotina, muitas possibilidades.<span>Study OS · 1.0</span></p>
       </aside>
       <div className="app-workspace">
         <header className="workspace-header">
-          {isSimulator ? <Link className="simulator-return" href="/"><ArrowLeft size={16} aria-hidden="true" /> Voltar à visão geral</Link> : <div className="workspace-breadcrumb"><span>Seu espaço</span><span aria-hidden="true">/</span><strong>Visão geral</strong></div>}
+          {isSimulator ? <Link className="simulator-return" href="/"><ArrowLeft size={16} aria-hidden="true" /> Voltar à visão geral</Link> : <div className="workspace-breadcrumb"><span>Seu espaço</span><span aria-hidden="true">/</span><strong>{navigation.find((item) => item.page === activePage)?.label}</strong></div>}
           <div className="workspace-actions">
             {developmentData && <span className="environment-label"><span aria-hidden="true" /> Ambiente de desenvolvimento</span>}
             <ThemeToggle />

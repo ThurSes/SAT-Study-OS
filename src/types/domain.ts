@@ -54,11 +54,43 @@ export type AssessmentResult = {
   readonly id: string;
   readonly date: string;
   readonly title: string;
+  readonly notes?: string;
 } & (
   | { readonly origin: "official_self_reported"; readonly readingWriting: number; readonly math: number }
   | { readonly origin: "printed_estimate"; readonly readingWriting: number; readonly math: number; readonly material: string; readonly conversionMethod: string }
   | { readonly origin: "experimental"; readonly correct: number; readonly total: number; readonly durationSeconds: number | null }
 );
+
+export interface StudyPlanItem {
+  readonly id: string;
+  readonly userId: string;
+  readonly skillId: Skill["id"];
+  readonly title: string;
+  readonly date: string;
+  readonly time: string;
+  readonly durationMinutes: number;
+  readonly status: "planned" | "in_progress" | "completed";
+  readonly personalDifficulty: "low" | "medium" | "high" | null;
+  readonly notes: string;
+  readonly resource: { readonly label: string; readonly href: string } | null;
+}
+
+/** Completed, separate attempts only. Never attach solutions to an active question payload. */
+export interface ErrorRecord {
+  readonly id: string;
+  readonly userId: string;
+  readonly attemptId: string;
+  readonly question: QuestionRef;
+  readonly skillId: Skill["id"];
+  readonly questionText: string;
+  readonly givenAnswer: string;
+  readonly correctAnswer: string;
+  readonly explanation: string;
+  readonly cause: "concept" | "reading" | "calculation" | "time" | "guess" | "unknown";
+  readonly reflection: string;
+  readonly reviewDueDate: string;
+  readonly reviews: readonly { readonly id: string; readonly reviewedAt: string }[];
+}
 
 export interface DashboardData {
   readonly studentName: string;
