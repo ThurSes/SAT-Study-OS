@@ -14,7 +14,7 @@ npm run dev
 ```
 
 Abra http://127.0.0.1:3000. Sem Docker, Supabase CLI ou PostgreSQL local.
-O servidor escuta somente no endereço local; a aplicação não foi publicada.
+O servidor de desenvolvimento escuta somente no endereço local.
 
 ## Conectar o Supabase hospedado
 
@@ -37,6 +37,29 @@ atômica com UUID idempotente. Nenhuma chave administrativa é necessária na ap
 [SSR oficial](https://supabase.com/docs/guides/auth/server-side/creating-a-client),
 [Auth por senha](https://supabase.com/docs/guides/auth/passwords) e
 [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security).
+
+## Publicar na Vercel
+
+O arquivo `.env.local` não vai para o GitHub. No projeto Vercel, abra Settings → Environment
+Variables e cadastre `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` com
+os mesmos valores locais. Cadastre `NEXT_PUBLIC_SITE_URL` com a origem pública HTTPS do site
+(sem caminho), por exemplo `https://sat-study-os-one.vercel.app`. Selecione Production e,
+se necessário, Preview; previews precisam de origem e allow list próprias para o callback.
+Os valores de `.env.example` são uma referência, não são carregados na hospedagem.
+
+Em Supabase → Authentication → URL Configuration, configure Site URL com a origem pública
+e adicione as URLs de retorno exatas: `https://sat-study-os-one.vercel.app/auth/callback`
+e `https://sat-study-os-one.vercel.app/auth/callback?next=/recuperar`. Preserve a URL local
+na lista se continuar desenvolvendo. Não use um wildcard que autorize todos os projetos Vercel.
+
+Após alterar variáveis na Vercel, faça Redeploy em Deployments: variáveis `NEXT_PUBLIC_*`
+também são incorporadas no build. Verifique que `/` redireciona para `/login`, que o formulário
+está habilitado e que login, salvamento e retorno de confirmação/recuperação funcionam no domínio
+publicado. Sem Site URL explícita, o código usa o domínio da implantação fornecido pela Vercel;
+em produção não há fallback automático para localhost. Nenhuma chave administrativa é necessária.
+
+[Variáveis da Vercel](https://vercel.com/docs/environment-variables),
+[URLs de retorno do Supabase](https://supabase.com/docs/guides/auth/redirect-urls).
 
 ## Funcionalidades
 
@@ -91,7 +114,7 @@ A biblioteca oferece aulas introdutórias para o mapa de habilidades; não é ma
 uma promessa de domínio. O banco ainda tem apenas cinco questões RW. Simulador curto permanece
 sem correção/adaptação automática e não gera resultado no histórico; use a prática individual para
 correção e diário. A pausa é didática, sem equivalência às regras de uma aplicação oficial.
-Não há reagendamento automático de revisão, relatórios completos ou publicação. Leituras pessoais
+Não há reagendamento automático de revisão ou relatórios completos. Leituras pessoais
 são limitadas a 500 registros recentes por área (até 2000 eventos de revisão); ainda não há paginação.
 
 [Estado](context/STATE.md), [decisões](context/DECISIONS.md), [produto](docs/PRODUCT.md),

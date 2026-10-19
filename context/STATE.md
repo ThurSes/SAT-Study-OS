@@ -1,5 +1,15 @@
 # Estado atual
 
+- Diagnóstico Vercel: https://sat-study-os-one.vercel.app responde 200 com aviso de configuração
+  ausente e login desabilitado. Variáveis locais não são carregadas pela hospedagem; cadastro
+  das três NEXT_PUBLIC_* e redeploy no painel Vercel pendentes (sem acesso ao painel nesta sessão).
+  Projeto Supabase ACTIVE_HEALTHY; consulta remota confirmou oito tabelas sat_* com RLS.
+  Corrigida origem de confirmação/recuperação: domínio confiável da implantação como fallback,
+  bloqueio de localhost na Vercel, validação de origem e trim nas variáveis Supabase. README
+  documenta variáveis e allow list Auth. 47 unitários, typecheck, lint, build e duas jornadas de
+  login/proteção de rotas passaram. Smoke de produção com ambiente Vercel confirmou login 200
+  e callback inválido 307 para o domínio HTTPS, sem localhost nem redirecionamento externo.
+  Validação autenticada no domínio publicado ainda pendente.
 - Aplicação única Next 16.4.2/React 19.3.1, TypeScript strict, Tailwind 4, componentes
   shadcn/Radix, fontes locais Source Serif 4 + Inter e temas claro/escuro. Git e npm lockfile.
 - Interface: dashboard, agenda, biblioteca /conteudos, questões, diário, histórico e simulador.
