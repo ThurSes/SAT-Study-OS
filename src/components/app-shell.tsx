@@ -1,0 +1,59 @@
+import Link from "next/link";
+import { ArrowLeft, ArrowUpRight, BookOpen, GraduationCap, History, LayoutDashboard, LibraryBig, NotebookPen, PanelTop, Sparkles } from "lucide-react";
+import type { ReactNode } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { getIdentity } from "@/lib/supabase/server";
+import { signOut } from "@/features/auth/actions";
+import { Button } from "@/components/ui/button";
+
+type Page = "dashboard" | "study" | "content" | "questions" | "errors" | "history" | "simulator";
+const navigation: { page: Page; href: string; label: string; icon: typeof LayoutDashboard }[] = [
+  { page: "dashboard", href: "/", label: "Visão geral", icon: LayoutDashboard },
+  { page: "study", href: "/estudos", label: "Estudos", icon: BookOpen },
+  { page: "content", href: "/conteudos", label: "Conteúdos", icon: GraduationCap },
+  { page: "questions", href: "/questoes", label: "Questões", icon: LibraryBig },
+  { page: "simulator", href: "/simulador", label: "Simulador", icon: PanelTop },
+  { page: "errors", href: "/erros", label: "Diário de erros", icon: NotebookPen },
+  { page: "history", href: "/historico", label: "Histórico", icon: History },
+];
+
+export async function AppShell({ children, activePage, developmentData = false }: { children: ReactNode; activePage: Page; developmentData?: boolean }) {
+  const isSimulator = activePage === "simulator";
+  const user = await getIdentity();
+  return (
+    <div className={isSimulator ? "app-shell app-shell-simulator" : "app-shell"}>
+      <a className="skip-link" href="#main-content">Pular para o conteúdo</a>
+      <aside className="app-sidebar" aria-label="Menu principal">
+        <Link href="/" className="brand" aria-label="SAT Study OS — início">
+          <span className="brand-monogram">S<span>.</span></span>
+          <span className="brand-name">SAT<span>STUDY OS</span></span>
+        </Link>
+        <div className="sidebar-body">
+          <p className="eyebrow nav-caption">Seu espaço de estudo</p>
+          <nav className="app-nav" aria-label="Navegação principal">
+            {navigation.map(({ page, href, label, icon: Icon }) => (
+              <Link key={page} href={href} aria-current={activePage === page ? "page" : undefined}>
+                <Icon size={18} aria-hidden="true" /><span>{label}</span>
+                {activePage === page && <span className="nav-active-dot" aria-hidden="true" />}
+              </Link>
+            ))}
+          </nav>
+        </div>
+        <div className="sidebar-note"><Sparkles size={18} aria-hidden="true" /><p>Um pouco de foco.<br /><strong>Um novo horizonte.</strong></p></div>
+        <p className="sidebar-version">Uma rotina, muitas possibilidades.<span>Study OS · 1.0</span></p>
+      </aside>
+      <div className="app-workspace">
+        <header className="workspace-header">
+          {isSimulator ? <Link className="simulator-return" href="/"><ArrowLeft size={16} aria-hidden="true" /> Voltar à visão geral</Link> : <div className="workspace-breadcrumb"><span>Seu espaço</span><span aria-hidden="true">/</span><strong>{navigation.find((item) => item.page === activePage)?.label}</strong></div>}
+          <div className="workspace-actions">
+            {developmentData && <span className="environment-label"><span aria-hidden="true" /> Ambiente de desenvolvimento</span>}
+            <ThemeToggle />
+            {user ? <form action={signOut}><Button variant="ghost" size="sm" type="submit">Sair da conta</Button></form> : <Link className="text-link" href="/login">Entrar</Link>}
+          </div>
+        </header>
+        <main id="main-content" className={isSimulator ? "app-main app-main-simulator" : "app-main"} tabIndex={-1}>{children}</main>
+        <footer className="workspace-footer"><span>SAT Study OS</span><span>Construindo uma rotina com intenção <ArrowUpRight size={13} aria-hidden="true" /></span></footer>
+      </div>
+    </div>
+  );
+}

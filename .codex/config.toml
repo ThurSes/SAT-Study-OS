@@ -1,0 +1,4 @@
+# Conferido na documentação oficial do Codex em 18/10/2026; detalhes no README.
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 3
