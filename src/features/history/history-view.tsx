@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { PageIntro } from "@/components/page-intro";
 import { Button } from "@/components/ui/button";
 import { buildExternalAssessment } from "@/lib/sat/assessments";
@@ -10,6 +11,7 @@ import styles from "@/features/workspace/workspace.module.css";
 
 const ORIGIN_LABELS: Record<AssessmentResult["origin"], string> = {
   official_self_reported: "Nota oficial · autodeclarada",
+  bluebook_self_reported: "Prática Bluebook · autodeclarada",
   printed_estimate: "Estimativa · material impresso",
   experimental: "Sessão experimental",
 };
@@ -24,8 +26,10 @@ function AssessmentCard({ result }: { result: AssessmentResult }) {
       <summary>Detalhes de {result.title}</summary>
       {result.origin === "experimental" ? <p className={styles.muted}>{result.durationSeconds === null ? "Tempo não informado." : `Tempo de sessão: ${Math.floor(result.durationSeconds / 60)} min ${result.durationSeconds % 60} s.`} Este desempenho não representa uma nota oficial do SAT.</p> : <div className={styles.meta}><span>Reading and Writing: {result.readingWriting}</span><span>Math: {result.math}</span></div>}
       {result.origin === "official_self_reported" && <p className={styles.muted}>Resultado informado pelo usuário; a origem oficial não foi verificada pelo sistema.</p>}
+      {result.origin === "bluebook_self_reported" && <p className={styles.muted}>Nota de prática no Bluebook informada pelo aluno; não é resultado de exame oficial.</p>}
       {result.origin === "printed_estimate" && <><p className={styles.muted}><strong>Material:</strong> {result.material}</p><p className={styles.muted}><strong>Método de conversão:</strong> {result.conversionMethod}</p></>}
       <p className={styles.muted}>{result.notes || "Sem observações neste registro."}</p>
+      {result.origin === "experimental" && result.examAttemptId && <Link href={`/simulador/prova?attempt=${result.examAttemptId}`}>Revisar as 98 questões</Link>}
     </details>
   </article>;
 }
@@ -87,7 +91,7 @@ export function HistoryView({ initialResults, onSave, developmentData = true }: 
         <fieldset disabled={saving} className={styles.full} style={{ display: "contents" }}>
         <div className={`${styles.field} ${styles.full}`}><label htmlFor="assessment-title">Nome da avaliação</label><input id="assessment-title" name="title" required maxLength={120} placeholder="Ex.: avaliação de outubro" /></div>
         <div className={styles.field}><label htmlFor="assessment-date">Data da avaliação</label><input id="assessment-date" name="date" type="date" required /></div>
-        <div className={styles.field}><label htmlFor="assessment-origin">Origem do novo registro</label><select id="assessment-origin" name="origin" value={newOrigin} onChange={(event) => setNewOrigin(event.target.value)}><option value="official_self_reported">Nota oficial autodeclarada</option><option value="printed_estimate">Estimativa de material impresso</option></select></div>
+        <div className={styles.field}><label htmlFor="assessment-origin">Origem do novo registro</label><select id="assessment-origin" name="origin" value={newOrigin} onChange={(event) => setNewOrigin(event.target.value)}><option value="official_self_reported">Nota oficial autodeclarada</option><option value="bluebook_self_reported">Prática Bluebook autodeclarada</option><option value="printed_estimate">Estimativa de material impresso</option></select></div>
         <div className={styles.field}><label htmlFor="assessment-rw">Reading and Writing (200–800)</label><input id="assessment-rw" name="rw" type="number" min={200} max={800} step={1} required inputMode="numeric" /></div>
         <div className={styles.field}><label htmlFor="assessment-math">Math (200–800)</label><input id="assessment-math" name="math" type="number" min={200} max={800} step={1} required inputMode="numeric" /></div>
         {newOrigin === "printed_estimate" && <>

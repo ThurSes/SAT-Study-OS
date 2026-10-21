@@ -6,7 +6,7 @@ import type { AssessmentResult, DashboardData } from "@/types/domain";
 function ResultRow({ result }: { result: AssessmentResult }) {
   const date = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", timeZone: "UTC" }).format(new Date(`${result.date}T12:00:00Z`));
   const experimental = result.origin === "experimental";
-  const origin = result.origin === "official_self_reported" ? "Nota oficial · autodeclarada" : result.origin === "printed_estimate" ? "Estimativa · material impresso" : "Sessão experimental";
+  const origin = result.origin === "official_self_reported" ? "Nota oficial · autodeclarada" : result.origin === "bluebook_self_reported" ? "Bluebook · autodeclarada" : result.origin === "printed_estimate" ? "Estimativa · material impresso" : "Sessão experimental";
   return (
     <li className="history-row">
       <span className="history-icon" aria-hidden="true">{experimental ? <FlaskConical size={18} /> : <BookOpen size={18} />}</span>

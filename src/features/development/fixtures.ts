@@ -7,7 +7,7 @@ import { questions, simulatorPlan, questionSkills as skills } from "@/features/q
 export const dashboardData: DashboardData = {
   studentName: "Estudante", targetScore: 1450,
   dateLabel: "18 de outubro de 2026 · cenário de exemplo",
-  nextActivity: { title: "Uma leitura atenta.\nUm passo à frente.", reason: "Explore cinco questões de Reading and Writing e pratique encontrar a evidência que sustenta uma resposta.", minutes: 5, href: "/simulador" },
+  nextActivity: { title: "Uma leitura atenta.\nUm passo à frente.", reason: "Explore cinco questões de Reading and Writing e pratique encontrar a evidência que sustenta uma resposta.", minutes: 5, href: "/simulador/treino" },
   agenda: [
     { id: "d86655ce-a301-4900-aea0-f020bc580001", time: "09:00", title: "Leitura com intenção", detail: "Reading and Writing · 20 min" },
     { id: "d86655ce-a301-4900-aea0-f020bc580002", time: "14:00", title: "Revisitar o raciocínio", detail: "Revisão de anotações · 15 min" },

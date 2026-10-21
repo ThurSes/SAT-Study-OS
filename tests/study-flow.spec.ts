@@ -3,8 +3,9 @@ import { test, expect } from "@playwright/test";
 test("dashboard links to an interactive session; answers remain only in memory", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await page.getByRole("link", { name: "Simulador", exact: true }).click();
-  await expect(page).toHaveURL("/simulador", { timeout: 30_000 });
+  await expect(page.getByRole("link", { name: "Simulador", exact: true })).toHaveAttribute("href", "/simulador");
+  await page.goto("/simulador/treino");
+  await expect(page).toHaveURL("/simulador/treino", { timeout: 30_000 });
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Um texto. Um raciocínio de cada vez.");
   await expect(page.getByRole("radio").first()).toBeDisabled();
   await page.getByRole("button", { name: "Iniciar sessão", exact: true }).click();
@@ -45,7 +46,7 @@ test("dashboard links to an interactive session; answers remain only in memory",
 
 test("deadline expires in the browser without waiting five minutes", async ({ page }) => {
   await page.clock.install();
-  await page.goto("/simulador");
+  await page.goto("/simulador/treino");
   await page.getByRole("button", { name: "Iniciar sessão", exact: true }).click();
   await page.getByRole("radio").first().check();
   await page.clock.fastForward(300_100);
@@ -60,7 +61,7 @@ test("keyboard selection, reduced motion and narrow layouts remain usable", asyn
   await page.emulateMedia({ reducedMotion: "reduce" });
   for (const width of [320, 360, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
-    for (const path of ["/", "/simulador"]) {
+    for (const path of ["/", "/simulador/treino"]) {
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -85,7 +86,7 @@ test("capture desktop and mobile for visual approval", async ({ page }) => {
     await page.goto("/");
     await page.evaluate(() => document.fonts.ready);
     await page.screenshot({ path: `artifacts/screenshots/dashboard-${viewport.name}.png`, fullPage: true, animations: "disabled" });
-    await page.goto("/simulador");
+    await page.goto("/simulador/treino");
     await page.getByRole("button", { name: "Iniciar sessão", exact: true }).click();
     await page.getByRole("radio").first().check();
     await page.getByRole("button", { name: "Marcar para revisão", exact: true }).click();
@@ -106,8 +107,9 @@ test("theme follows the system, persists across routes and does not reset an act
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  await page.getByRole("link", { name: "Simulador", exact: true }).click();
-  await expect(page).toHaveURL("/simulador", { timeout: 30_000 });
+  await expect(page.getByRole("link", { name: "Simulador", exact: true })).toHaveAttribute("href", "/simulador");
+  await page.goto("/simulador/treino");
+  await expect(page).toHaveURL("/simulador/treino", { timeout: 30_000 });
   await page.getByRole("button", { name: "Iniciar sessão", exact: true }).click();
   await page.getByRole("radio").first().check();
   const toggle = page.getByRole("button", { name: "Ativar modo escuro", exact: true });
@@ -142,7 +144,7 @@ test("dark tokens remain readable on desktop/mobile and the toggle tolerates blo
   });
   for (const width of [320, 360, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
-    for (const path of ["/", "/simulador"]) {
+    for (const path of ["/", "/simulador/treino"]) {
       await page.goto(path);
       await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);

@@ -29,7 +29,7 @@ export function QuestionBankView({ questions, skills, developmentData = true, on
 
   return <>
     <PageIntro developmentData={developmentData} eyebrow="Banco de questões / Explore o raciocínio" title="Questões para pensar melhor." description={developmentData ? "Explore os textos, as habilidades e as alternativas de questões originais de desenvolvimento." : "Pratique com questões originais e use a explicação para compreender o raciocínio."}>
-      <Button asChild><Link href="/simulador">Abrir sessão curta <ArrowRight size={16} aria-hidden="true" /></Link></Button>
+      <Button asChild><Link href="/simulador/treino">Abrir sessão curta <ArrowRight size={16} aria-hidden="true" /></Link></Button>
     </PageIntro>
     <div className={styles.note}>{onSubmitAnswer ? "Na prática individual, a correção aparece após a confirmação do envio. Uma resposta incorreta permite registrar interpretação, conteúdo ou falta de atenção como causa do erro. A sessão curta é independente dos filtros deste banco." : "Este banco permite consultar enunciados e alternativas. A autoavaliação é temporária, sem correção real. A sessão curta é independente dos filtros: ela usa as cinco questões fixas do simulador, sem treino personalizado."}</div>
     <div className={styles.toolbar} aria-label="Filtros do banco de questões">

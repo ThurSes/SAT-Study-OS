@@ -191,7 +191,7 @@ export function SimulatorSession({ plan, questions, skills, initialStored, onSav
       {onSaveEvent && <div className={styles.developmentNote}>
         {saving && <p role="status">Salvando ação… Aguarde a confirmação antes de sair.</p>}
         {saveFeedback && <p role="status">{saveFeedback}</p>}
-        {saveError && <div><p role="alert">{saveError}</p><Button variant="outline" onClick={() => retry.current && dispatch(retry.current.event)} disabled={saving}>Tentar salvar novamente</Button> <a href="/simulador">Recarregar estado confirmado</a></div>}
+        {saveError && <div><p role="alert">{saveError}</p><Button variant="outline" onClick={() => retry.current && dispatch(retry.current.event)} disabled={saving}>Tentar salvar novamente</Button> <a href="/simulador/treino">Recarregar estado confirmado</a></div>}
       </div>}
 
       <article className={styles.questionPanel}>
