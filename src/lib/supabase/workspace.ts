@@ -7,14 +7,14 @@ import { questionSkills } from "@/features/questions/catalog";
 import { toStudyDate } from "@/lib/format-date";
 
 interface ErrorRow {
-  id: string; user_id: string; attempt_id: string; question_id: string; question_version: number;
+  id: string; user_id: string; attempt_id: string | null; exam_attempt_id?: string | null; question_id: string; question_version: number;
   skill_id: string; question_text: string; given_answer: string; correct_answer: string; explanation: string;
   cause: ErrorRecord["cause"]; reflection: string; review_due_date: string;
 }
 interface ReviewRow { id: string; error_id: string; reviewed_at: string }
 
 export function mapError(row: ErrorRow, reviews: readonly ReviewRow[] = []): ErrorRecord {
-  return { id: row.id, userId: row.user_id, attemptId: row.attempt_id, question: { id: row.question_id, version: row.question_version },
+  return { id: row.id, userId: row.user_id, attemptId: row.attempt_id ?? row.exam_attempt_id ?? row.id, question: { id: row.question_id, version: row.question_version },
     skillId: row.skill_id, questionText: row.question_text, givenAnswer: row.given_answer, correctAnswer: row.correct_answer,
     explanation: row.explanation, cause: row.cause, reflection: row.reflection, reviewDueDate: row.review_due_date,
     reviews: reviews.filter(review => review.error_id === row.id).map(review => ({ id: review.id, reviewedAt: review.reviewed_at })) };
@@ -32,13 +32,15 @@ export const getOptionalWorkspace = cache(async () => {
     db.from("sat_errors").select("*").eq("user_id", user.id).order("review_due_date").limit(500),
     db.from("sat_error_reviews").select("id,error_id,reviewed_at").eq("user_id", user.id).order("reviewed_at").limit(2000),
     db.from("sat_practice_attempts").select("id,skill_id,correct,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(500),
+    db.from("sat_exam_results").select("attempt_id,completed_at,correct,total,observed_ms,sections").eq("user_id",user.id).order("completed_at",{ascending:false}).limit(500),
   ]);
   if (queries.some(query => query.error)) throw new Error("Não foi possível carregar seus estudos. Confira a conexão e a aplicação das migrations do Supabase.");
-  const [profile, studies, assessments, lessons, errors, reviews, practice] = queries;
+  const [profile, studies, assessments, lessons, errors, reviews, practice, exams] = queries;
   const studyItems = (studies.data || []).map(row => row.payload as StudyPlanItem);
   const lessonProgress: LessonProgress[] = (lessons.data || []).map(row => ({ lessonId: row.lesson_id, completed: row.completed, notes: row.notes }));
   const errorRecords = (errors.data || []).map(row => mapError(row as ErrorRow, reviews.data as ReviewRow[]));
   const history: AssessmentResult[] = [...(assessments.data || []).map(row => row.payload as AssessmentResult),
+    ...(exams.data || []).map(row => ({ id:row.attempt_id, date:toStudyDate(row.completed_at),title:"Simulado adaptativo",origin:"experimental" as const,correct:row.correct,total:row.total,durationSeconds:Math.round(row.observed_ms/1000),examAttemptId:row.attempt_id })),
     ...(practice.data || []).map(row => ({ id: row.id, date: toStudyDate(row.created_at), title: "Prática individual", origin: "experimental" as const, correct: row.correct ? 1 : 0, total: 1, durationSeconds: null }))];
   const referenceDate = toStudyDate(new Date());
   const nextItem = studyItems.filter(item => item.status !== "completed").toSorted((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))[0];

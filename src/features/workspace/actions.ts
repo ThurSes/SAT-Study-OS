@@ -31,7 +31,7 @@ export async function saveStudyItem(input: StudyPlanItem): Promise<SaveResult<St
 
 export async function saveAssessment(input: AssessmentResult): Promise<SaveResult<AssessmentResult>> {
   if (!input || !isUuid(input.id) || input.origin === "experimental") return { ok: false, error: "Avaliação externa inválida." };
-  if (typeof input.title !== "string" || typeof input.date !== "string" || (input.notes !== undefined && typeof input.notes !== "string") || !["official_self_reported", "printed_estimate"].includes(input.origin) || (input.origin === "printed_estimate" && (typeof input.material !== "string" || typeof input.conversionMethod !== "string"))) return { ok: false, error: "Revise os campos da avaliação." };
+  if (typeof input.title !== "string" || typeof input.date !== "string" || (input.notes !== undefined && typeof input.notes !== "string") || !["official_self_reported", "bluebook_self_reported", "printed_estimate"].includes(input.origin) || (input.origin === "printed_estimate" && (typeof input.material !== "string" || typeof input.conversionMethod !== "string"))) return { ok: false, error: "Revise os campos da avaliação." };
   const validated = buildExternalAssessment({ title: input.title, date: input.date, origin: input.origin, readingWriting: String(input.readingWriting), math: String(input.math), material: input.origin === "printed_estimate" ? input.material : "", conversionMethod: input.origin === "printed_estimate" ? input.conversionMethod : "", notes: input.notes || "" }, input.id);
   if (!validated.ok) return { ok: false, error: validated.error };
   try {

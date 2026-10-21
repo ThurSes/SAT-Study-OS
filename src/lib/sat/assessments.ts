@@ -12,7 +12,7 @@ export interface ExternalAssessmentInput {
 }
 
 export type ExternalAssessmentResult = Extract<AssessmentResult, {
-  origin: "official_self_reported" | "printed_estimate";
+  origin: "official_self_reported" | "bluebook_self_reported" | "printed_estimate";
 }>;
 
 function isCivilDate(value: string): boolean {
@@ -42,7 +42,7 @@ export function buildExternalAssessment(
 
   const date = input.date.trim();
   if (!isCivilDate(date)) return { ok: false, error: "Informe uma data válida no formato AAAA-MM-DD." };
-  if (input.origin !== "official_self_reported" && input.origin !== "printed_estimate") {
+  if (input.origin !== "official_self_reported" && input.origin !== "bluebook_self_reported" && input.origin !== "printed_estimate") {
     return { ok: false, error: "Selecione resultado oficial autodeclarado ou estimativa impressa." };
   }
 
@@ -57,8 +57,8 @@ export function buildExternalAssessment(
   if (notes.length > 2_000) return { ok: false, error: "As notas devem ter até 2000 caracteres." };
   const common = { id, title, date, readingWriting, math, ...(notes ? { notes } : {}) };
 
-  if (input.origin === "official_self_reported") {
-    return { ok: true, assessment: { ...common, origin: "official_self_reported" } };
+  if (input.origin === "official_self_reported" || input.origin === "bluebook_self_reported") {
+    return { ok: true, assessment: { ...common, origin: input.origin } };
   }
 
   const material = input.material.trim();

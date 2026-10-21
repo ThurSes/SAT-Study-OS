@@ -56,9 +56,9 @@ export type AssessmentResult = {
   readonly title: string;
   readonly notes?: string;
 } & (
-  | { readonly origin: "official_self_reported"; readonly readingWriting: number; readonly math: number }
+  | { readonly origin: "official_self_reported" | "bluebook_self_reported"; readonly readingWriting: number; readonly math: number }
   | { readonly origin: "printed_estimate"; readonly readingWriting: number; readonly math: number; readonly material: string; readonly conversionMethod: string }
-  | { readonly origin: "experimental"; readonly correct: number; readonly total: number; readonly durationSeconds: number | null }
+  | { readonly origin: "experimental"; readonly correct: number; readonly total: number; readonly durationSeconds: number | null; readonly examAttemptId?: string }
 );
 
 export interface StudyPlanItem {
@@ -141,4 +141,77 @@ export interface DashboardData {
   readonly agenda: readonly { readonly id: string; readonly time: string; readonly title: string; readonly detail: string }[];
   readonly performance: readonly { readonly skill: Skill; readonly correct: number; readonly total: number }[];
   readonly history: readonly AssessmentResult[];
+}
+
+/** Adaptive exam contracts. No key, route decision or pretest flag in active payloads. */
+export type ExamPhase = "rw1" | "rw2" | "break" | "math1" | "math2";
+export type ExamBlock =
+  | { readonly id: string; readonly type: "text"; readonly text: string }
+  | { readonly id: string; readonly type: "math"; readonly latex: string }
+  | { readonly id: string; readonly type: "image"; readonly src: string; readonly alt: string }
+  | { readonly id: string; readonly type: "table"; readonly headers: readonly string[]; readonly rows: readonly (readonly string[])[] };
+export interface ExamQuestion extends QuestionRef {
+  readonly section: SatSection;
+  readonly domain: SatDomain;
+  readonly skillId: string;
+  readonly difficulty: "easy" | "medium" | "hard";
+  readonly format: "multiple-choice" | "numeric";
+  readonly passage: readonly ExamBlock[];
+  readonly content: readonly ExamBlock[];
+  readonly options: readonly { readonly id: string; readonly label: string; readonly content: readonly ExamBlock[] }[];
+  readonly provenance: { readonly kind: "personal-pdf" | "original"; readonly label: string; readonly sourceTest?: number; readonly page?: number };
+  readonly previouslySeen: boolean;
+}
+export interface ExamAnnotation { readonly blockId: string; readonly start: number; readonly end: number; readonly style: "highlight" | "underline" }
+export interface ExamAnswer {
+  readonly value: string | null;
+  readonly marked: boolean;
+  readonly eliminated: readonly string[];
+  readonly notes: string;
+  readonly annotations: readonly ExamAnnotation[];
+  readonly observedMs: number;
+}
+export interface ExamAvailability {
+  readonly ready: boolean;
+  readonly reviewedCount: number;
+  readonly reason: string | null;
+}
+export interface ExamReviewItem {
+  readonly question: ExamQuestion;
+  readonly answer: ExamAnswer;
+  readonly correct: boolean;
+  readonly scored: boolean;
+  readonly correctAnswer: string;
+  readonly explanation: string;
+  readonly phase: Exclude<ExamPhase, "break">;
+}
+export interface ExamResult {
+  readonly correct: number;
+  readonly total: number;
+  readonly blank: number;
+  readonly observedMs: number;
+  readonly sections: readonly { readonly section: SatSection; readonly correct: number; readonly total: number; readonly route: "lower" | "higher" }[];
+  readonly items: readonly ExamReviewItem[];
+}
+export interface ExamSnapshot {
+  readonly availability: ExamAvailability;
+  readonly serverNow: string;
+  readonly attemptId: string | null;
+  readonly revision: number;
+  readonly status: "idle" | "in_progress" | "completed" | "abandoned";
+  readonly phase: ExamPhase | null;
+  readonly deadline: string | null;
+  readonly questions: readonly ExamQuestion[];
+  readonly answers: Readonly<Record<string, ExamAnswer>>;
+  readonly calculator: { readonly graphing?: unknown; readonly scientific?: unknown };
+  readonly result: ExamResult | null;
+}
+export interface ExamCommand {
+  readonly operation: "start" | "sync" | "save" | "abandon" | "calculator";
+  readonly requestId: string;
+  readonly attemptId?: string;
+  readonly expectedRevision?: number;
+  readonly questionId?: string;
+  readonly answer?: ExamAnswer;
+  readonly calculator?: { readonly graphing?: unknown; readonly scientific?: unknown };
 }

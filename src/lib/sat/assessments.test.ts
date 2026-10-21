@@ -13,6 +13,11 @@ const input: ExternalAssessmentInput = {
 };
 
 describe("external assessment validation", () => {
+  it("keeps Bluebook practice separate from official test scores", () => {
+    const result = buildExternalAssessment({ ...input, origin: "bluebook_self_reported" }, "bluebook");
+    expect(result).toMatchObject({ok:true,assessment:{origin:"bluebook_self_reported",readingWriting:650,math:700}});
+    if(result.ok) expect(result.assessment).not.toHaveProperty("conversionMethod");
+  });
   it("builds an official self-reported result without mutating input or carrying print-only fields", () => {
     const source = Object.freeze({
       ...input,
