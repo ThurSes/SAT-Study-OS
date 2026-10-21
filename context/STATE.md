@@ -1,5 +1,39 @@
 # Estado atual
 
+- Simulado completo implementado em /simulador (21/10/2026); treino curto preservado em
+  /simulador/treino. Quatro módulos, intervalo, prazos contínuos sem pausa/avanço antecipado,
+  adaptação por seção, salvamento idempotente com revisão e resultado de 90 itens pontuados
+  com revisão das 98 questões, domínios/habilidades e diário de erros. Sem conversão 400–1600.
+- Carregadas e confirmadas no Supabase 224 questões únicas, revisadas dos PDFs4/5, e dez
+  figuras privadas; estoque cobre todos os caminhos em20seeds. Leituras privadas por dono;
+  figuras em sat_private.exam_assets via RPC/rota autenticada, sem chave administrativa web.
+  Gabarito online atual4 pertence a outra edição: respostas resolvidas independentemente e
+  referências substituídas documentadas em artifacts/private-sat/publish.reviews.json (ignorado).
+- Oito PDFs inventariados (444páginas) e extraídos em candidatos privados. Carga deste
+  conjunto:65RW4+61RW5+54Math4+44Math5. Itens com corte/continuação/inconsistência não
+  resolvida estão fora da prova; demais candidatos não revisados permanecem indisponíveis.
+  Nenhum PDF, enunciado importado, solução ou figura protegida entrou no Git ou em public.
+- Aplicadas migrations 202610190001,202610210001–003: motor adaptativo, anotações estritas,
+  reserva de cotas pontuadas antes de não pontuadas, mídia privada. SuiteSQL A/B/anônimo,
+  quatro caminhos, correção/prazos/recibos e legacy isolation passou na revisão anterior;
+  novos testes mídia e estoque mínimo147 em12seeds passaram. Rerun extenso do conector
+  retornou requestState expirado; validação HTTP real confirmou os quatro caminhos,
+  concorrência (um vencedor), conflito de revisão, retry pós-commit, fechamento único e
+  relatório98/90. Dados das contas de teste são isolados da conta pessoal e removidos ao fim.
+- Typecheck,64Vitest,20Python,lint,build e13Playwright passaram. Segunda execução E2E
+  reutilizou servidor Next e encerrou exit0; primeira reproduziu travamento do runnerWindows
+  ao encerrar seu próprio servidor. Capturas RW/Math desktop/320px/texto200% conferidas.
+  Testes antigos ajustados para /simulador/treino ainda sem rerun completo de fixtures antigas.
+- Desmos sem chave mantém alternativa oficial externa; API embutida testada com stub,
+  aguardando chave válida para validação contra serviço real. Hospedagem continua sem
+  publicação automática. Audit npm desta rodada não concluiu por falha de rede no endpoint.
+- Produção local autenticada validada: /simulador200semgabarito, figura privada200comSHA
+  correto/no-store, contaB404 e anônimo401. Servidor local precisa de rede para Supabase;
+  sessão60525 foi iniciada com rede autorizada. Harness genérico em scripts/test_sat_http.mjs;
+  credenciais, chaves de respostas e SQL de fixtures ficam somente no diretório ignorado.
+- Prova completa pronta no código e banco pessoal. Domínio público precisa receber a nova
+  versão e suas variáveis Vercel antes da validação publicada; sem publicação automática.
+
 - Diagnóstico Vercel: https://sat-study-os-one.vercel.app responde 200 com aviso de configuração
   ausente e login desabilitado. Variáveis locais não são carregadas pela hospedagem; cadastro
   das três NEXT_PUBLIC_* e redeploy no painel Vercel pendentes (sem acesso ao painel nesta sessão).

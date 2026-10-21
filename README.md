@@ -110,11 +110,62 @@ Confira dependências de produção com `npm audit --omit=dev`; não use `--forc
 
 ## Limites atuais
 
+O simulado adaptativo está em `/simulador`, com quatro módulos, intervalo, prazos contínuos
+no servidor, seleção de caminho por seção e relatório experimental de 90 itens pontuados.
+O início exige conteúdo revisado suficiente para os dois caminhos. O banco pessoal importado
+tem 224 questões revisadas dos testes #4 e #5; as extrações dos demais PDFs ainda não estão
+liberadas. O treino curto anterior continua em `/simulador/treino`.
+
+Para validar a interface em desenvolvimento, use `/dev/exam-preview` e
+`npx playwright test tests/exam-ui.spec.ts`. Esse preview usa dados sintéticos, não comprova
+persistência real e não fica disponível em produção. Os testes transacionais hospedados estão
+em `supabase/tests/adaptive_exam.sql`; usam fixtures revertidas por rollback.
+`exam_minimum_stock.sql` verifica o estoque mínimo exato; `exam_media.sql` cobre a mídia
+privada com A/B/anônimo. O teste HTTP real em `scripts/test_sat_http.mjs` usa apenas contas
+sintéticas confirmadas e dados clonados para elas: `init` gera SQL/credenciais no diretório
+ignorado, `start higher lower` escolhe a combinação esperada, `stage`/`finish` verificam
+transições e resultado. O desenvolvedor ajusta o relógio somente da tentativa sintética por
+SQL. Ao terminar, executar `logout`, aplicar o `cleanup.sql` guardado e apagar os arquivos
+locais com credenciais. Nunca executar essa jornada na conta pessoal.
+
+### Importação privada
+
+Os PDFs, recortes, gabaritos e decisões de revisão ficam em `artifacts/private-sat`, ignorado
+pelo Git. Execute os scripts com Python e pdfplumber/pypdf/pypdfium2/Pillow instalados:
+
+```powershell
+python scripts/import_sat_pdfs.py inventory --source ../SAT
+python scripts/import_sat_pdfs.py extract --source ../SAT --tests 4 --render
+python scripts/attach_sat_keys.py --tests 4
+python scripts/review_sat_import.py sheets --tests 4 --section rw --limit 12
+python scripts/review_sat_import.py approve --decisions artifacts/private-sat/decisions.json
+python scripts/review_sat_import.py export --owner <UUID>
+python scripts/prepare_sat_load.py --owner <UUID> --decisions decisions-rw4.json decisions-rw5.json decisions-math4.json decisions-math-principal.json
+python scripts/test_sat_import.py
+```
+
+Repita a extração por teste para retomar trabalhos interrompidos. `attach_sat_keys` exige
+`references/key-N.json` com URL oficial e quatro tabelas completas; recusa chaves conflitantes
+e preserva itens revisados. A associação não verifica a edição nem aprova a questão.
+Decisões exigem inspeção visual, resposta, explicação, taxonomia, dificuldade, edição e
+acessibilidade. O exportador valida o digest revisado e gera arquivos privados de carga;
+não publica no banco automaticamente. Nunca copie esses arquivos para `public` ou para o Git.
+`prepare_sat_load` revalida as decisões, hashes e figuras antes de gerar lotes SQL privados e
+imutáveis em `artifacts/private-sat/load`. Aplique os lotes com a conexão de desenvolvedor,
+começando pelas figuras; uma versão existente com conteúdo diferente faz a carga falhar.
+Figuras deste lote ficam em `sat_private.exam_assets`, limitadas a 2 MB, e são servidas pela
+rota autenticada `/api/exam-assets`; o navegador nunca recebe chave administrativa.
+
+O gabarito online atual do teste #4 corresponde a outra edição. As respostas publicadas
+foram resolvidas independentemente a partir do PDF local; essa verificação e a referência
+substituída ficam no registro privado da revisão. Não aprove conteúdo apenas pelo número
+do teste ou por uma tabela de respostas que ainda não foi comparada com a edição local.
+
 A biblioteca oferece aulas introdutórias para o mapa de habilidades; não é material oficial nem
-uma promessa de domínio. O banco ainda tem apenas cinco questões RW. Simulador curto permanece
+uma promessa de domínio. A prática individual compartilhada tem cinco questões RW. O treino curto permanece
 sem correção/adaptação automática e não gera resultado no histórico; use a prática individual para
 correção e diário. A pausa é didática, sem equivalência às regras de uma aplicação oficial.
-Não há reagendamento automático de revisão ou relatórios completos. Leituras pessoais
+Não há reagendamento automático de revisão. Leituras pessoais
 são limitadas a 500 registros recentes por área (até 2000 eventos de revisão); ainda não há paginação.
 
 [Estado](context/STATE.md), [decisões](context/DECISIONS.md), [produto](docs/PRODUCT.md),

@@ -32,3 +32,22 @@ das telas e componentes definitivos de dashboard/simulador. A aprovação visual
 Estas decisões substituem o limite de estado exclusivamente em memória quando Supabase está
 configurado. A sessão curta continua experimental, com pausa didática e sem adaptação/correção
 automática. Aplicação e verificação das migrations hospedadas são acompanhadas em STATE.
+
+## Simulado adaptativo autorizado
+
+- `/simulador` recebe a prova completa; `/simulador/treino` preserva a sessão didática.
+- Prazo contínuo e correção ficam no servidor. São 98 itens apresentados, 90 pontuados,
+  com corte editorial de 65% para o segundo módulo; não há conversão para 400–1600.
+- Questões dos PDFs pertencem à conta importadora e ficam separadas do banco de prática
+  legado. Extração e associação de gabarito não constituem revisão editorial.
+- Publicação exige conteúdo revisado suficiente para os primeiros módulos e os dois
+  caminhos seguintes, sem repetição lógica na tentativa. Estoque incompleto bloqueia início.
+- Integração Desmos depende de chave pública; indisponibilidade oferece calculadora oficial
+  externa e não interrompe o relógio. Resultados Bluebook são autodeclarados e identificados.
+- Reservar todos os itens pontuados dos seis conjuntos antes de selecionar os não pontuados:
+  evita que um item livre consuma estoque obrigatório de um módulo posterior.
+- Figuras importadas podem ser carregadas pelo desenvolvedor no schema privado do PostgreSQL
+  e lidas por RPC/rota autenticada com ownership. Isso conclui a carga sem distribuir chave
+  administrativa de Storage; arquivos limitados a 2 MB e sem cache público.
+- Gabaritos com o mesmo número de teste exigem comparação de edição. Divergências são
+  resolvidas e documentadas a partir do enunciado local, com explicação independente.

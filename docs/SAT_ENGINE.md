@@ -33,9 +33,9 @@ Selecionar por seção/habilidade e preferências de dificuldade, com seed persi
 Em estoque pequeno, admitir mistura de dificuldades sem repetir e registrar composição real;
 se nem a quantidade única existir, retornar erro explicável, sem duplicar silenciosamente.
 
-MCQ valida que opção pertence à versão. Numeric aceita inteiro, decimal e fração simples,
-com denominador diferente de zero e limite de comprimento. Normalizar ponto/vírgula segundo
-a regra de entrada documentada. Usar comparação racional exata; alternativas arredondadas são
+MCQ valida que opção pertence à versão. Numeric aceita inteiro, decimal com ponto e fração simples,
+com denominador diferente de zero; até cinco caracteres positivos ou seis incluindo sinal
+negativo. Vírgula, porcentagem e moeda são inválidas. Usar comparação racional exata; alternativas arredondadas são
 registradas explicitamente no gabarito do item, sem tolerância genérica ou eval.
 Separar entrada inválida, resposta incorreta e branco. Treino pode revelar correção após envio;
 simulado só revela soluções ao concluir a tentativa. Nunca enviar gabarito antes no HTML/payload.
@@ -49,10 +49,18 @@ Higher prioriza itens hard/medium; lower easy/medium, sem prometer equivalência
 Escolher o caminho uma vez, congelar seleção e registrar versão da regra, seed e resultado.
 Se mudar heurística, preservar a versão da regra nas tentativas antigas; o app continua 1.0.
 
+Cada módulo contém dois itens não pontuados, definidos previamente e revelados somente na
+revisão final. O corte considera 25 itens RW ou 20 Math do primeiro módulo. A tentativa
+reserva 147 IDs distintos nos seis conjuntos, apresenta 98 e pontua 90. Reservar primeiro
+as cotas pontuadas de todos os conjuntos e depois os itens não pontuados. Em RW, cotas por
+domínio são 6/7/5/7 no primeiro módulo e 7/7/5/6 no segundo. Em Math, 7/7/3/3 por módulo,
+com respostas numéricas 2/2/1/0. Estoque sem cobertura bloqueia a prova completa.
+
 ## Cronômetro, respostas e retomada
 
-Quando persistência for implementada, banco/servidor é autoridade de prazo e estado.
-Ao ativar módulo, salvar startedAt e deadlineAt. Timer visual calcula restante com serverNow
+Banco/servidor é autoridade de prazo e estado. A tentativa conserva um startedAt contínuo;
+os limites acumulados em segundos são 1920, 3840, 4440, 6540 e 8640, incluindo o intervalo.
+Timer visual calcula restante com serverNow
 e relógio monotônico; setInterval apenas redesenha. Recalibrar após retornar à aba ou recarregar.
 Alterar relógio do computador, suspender aba ou perder login não pausa o prazo ativo.
 
@@ -68,13 +76,12 @@ Mostrar “Salvando” até confirmação real; falha preserva seleção em mem�
 “Não sincronizado” com retry. Sem promessa de offline: fechar a aba pode perder pendências.
 Tudo que foi confirmado deve sobreviver ao reload. Não usar localStorage como banco alternativo.
 
-Ao finalizar, confirmar operações pendentes e enviar fechamento idempotente. Servidor fecha/corrige
-e prepara próximo módulo atomicamente; duas submissões não criam dois módulos/resultados.
-Em timeout, fechar com as respostas já gravadas e manter brancos no denominador. Save que chega
-ao banco no prazo exato ou depois é rejeitado. Módulo fechado não admite edição ou retorno.
-Próximo módulo pending começa só na ativação confirmada; intervalo tem breakEndsAt persistido.
-Na retomada de módulo vencido, finalizar esse módulo antes de ativar o seguinte. Informar que
-a ativação entre módulos pode diferir da administração oficial; não vender como réplica do Bluebook.
+Não há pausa, reinício da tentativa nem avanço antecipado. Ao atingir um limite, o servidor
+fecha o módulo com respostas gravadas e mantém brancos no denominador; duas sincronizações
+não criam dois resultados. Save admitido sob lock no prazo exato ou depois é rejeitado.
+Módulo fechado não admite edição ou retorno. Retomada reconcilia todos os períodos vencidos,
+inclusive intervalo, sem devolver tempo. Correção e relatório são liberados ao concluir a
+prova inteira. Não vender essa adaptação editorial como réplica psicométrica do Bluebook.
 
 ## Erros, domínio e recomendações
 
