@@ -31,6 +31,8 @@
   correto/no-store, contaB404 e anônimo401. Servidor local precisa de rede para Supabase;
   sessão60525 foi iniciada com rede autorizada. Harness genérico em scripts/test_sat_http.mjs;
   credenciais, chaves de respostas e SQL de fixtures ficam somente no diretório ignorado.
+- Limpeza final confirmada:224questões e10figuras pessoais preservadas, zero contas e
+  sessões sintéticas restantes; tokens revogados e arquivos locais de credenciais removidos.
 - Prova completa pronta no código e banco pessoal. Domínio público precisa receber a nova
   versão e suas variáveis Vercel antes da validação publicada; sem publicação automática.
 
